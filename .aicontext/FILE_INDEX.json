@@ -1,0 +1,38 @@
+{
+  "ENTRY": [
+    { "path": "backend/main.py", "description": "FastAPI gateway entry point" },
+    { "path": "frontend/index.html", "description": "Main single-page app layout" },
+    { "path": "start.ps1", "description": "Startup script" }
+  ],
+  "CRITICAL": [
+    { "path": "backend/app/shared/database.py", "description": "Core DB queries" },
+    { "path": "backend/app/domain/core_trust/orchestrator.py", "description": "Decision orchestrator" },
+    { "path": "backend/app/domain/core_trust/pipeline.py", "description": "Trust decision pipeline" },
+    { "path": "backend/app/shared/auth.py", "description": "Authentication" },
+    { ".aicontext/RULES.md": "Strict coding conventions" }
+  ],
+  "DOMAIN": {
+    "compliance": "backend/app/domain/compliance/engine.py, backend/app/domain/compliance/pf_engine.py",
+    "core_trust": "backend/app/domain/core_trust/pipeline.py, backend/app/domain/core_trust/orchestrator.py",
+    "market_data": "backend/app/domain/market_data/live_fetcher.py, backend/app/domain/market_data/parsers.py",
+    "portfolio": "backend/app/domain/portfolio/engine.py, backend/app/domain/portfolio/analytics.py, backend/app/domain/portfolio/dataset.py",
+    "risk": "backend/app/domain/risk/engine.py, backend/app/domain/risk/alert_engine.py"
+  },
+  "HEAVY": [
+    { "path": "backend/app/domain/compliance/engine.py", "size": "69KB" },
+    { "path": "backend/app/domain/core_trust/pipeline.py", "size": "79KB" },
+    { "path": "backend/app/domain/market_data/live_fetcher.py", "size": "56KB" },
+    { "path": "backend/app/domain/market_data/parsers.py", "size": "56KB" },
+    { "path": "backend/app/domain/portfolio/analytics.py", "size": "75KB" },
+    { "path": "backend/app/domain/portfolio/dataset.py", "size": "98KB", "summary": ".aicontext/SUMMARIES/portfolio_dataset.md" },
+    { "path": "backend/app/domain/portfolio/engine.py", "size": "60KB" },
+    { "path": "backend/app/domain/portfolio/im_institutional_engine.py", "size": "81KB", "summary": ".aicontext/SUMMARIES/im_institutional_engine.md" },
+    { "path": "backend/app/domain/portfolio/investment_recommendation_engine.py", "size": "69KB" }
+  ],
+  "IGNORE": [
+    ".git/",
+    "__pycache__/",
+    "node_modules/",
+    "env_boot_bxyvpbif/"
+  ]
+}

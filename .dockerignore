@@ -1,0 +1,37 @@
+# Docker build exclusions — keeps the image lean
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+.git/
+.gitignore
+.env
+.venv/
+venv/
+env/
+.vscode/
+.idea/
+*.md
+!Private3/unified_gateway/shared/schema.sql
+*.log
+logs/
+*.tmp
+*.bak
+node_modules/
+.DS_Store
+Thumbs.db
+pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Keep only the unified gateway module
+Private3/bond_intelligence/__pycache__/
+Private3/bond_quote_system/__pycache__/
+Private3/compliance_engine/__pycache__/
+Private3/unified_gateway/data/
+Private3/unified_gateway/.venv/

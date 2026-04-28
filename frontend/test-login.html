@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login Diagnostic</title>
+<style>
+  body { font-family: monospace; background: #0f172a; color: #e2e8f0; padding: 20px; margin: 0; }
+  h2 { color: #60a5fa; }
+  .step { padding: 8px 12px; margin: 4px 0; border-radius: 6px; }
+  .ok   { background: #064e3b; border-left: 4px solid #10b981; }
+  .err  { background: #450a0a; border-left: 4px solid #ef4444; }
+  .info { background: #1e3a5f; border-left: 4px solid #60a5fa; }
+  .warn { background: #422006; border-left: 4px solid #f59e0b; }
+  pre  { background: #1e293b; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  button { background: #3b82f6; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 15px; margin-top: 10px; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  a { color: #60a5fa; }
+  #log { margin-top: 16px; }
+</style>
+</head>
+<body>
+<h2>🔍 Login Diagnostic — PF Trust Gateway</h2>
+<p>This page tests each step of the login + navigation flow and logs exactly what happens.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0;">
+  <input id="diag-username" type="text" placeholder="Username" value="admin" style="padding:10px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;min-width:180px;" />
+  <input id="diag-password" type="password" placeholder="Password" value="GatewayA@2026" style="padding:10px;border-radius:6px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;min-width:240px;" />
+</div>
+<button id="run-btn" onclick="runDiag()">▶ Run Diagnostic</button>
+<div id="log"></div>
+
+<script>
+const BASE = '';
+let log;
+
+function step(msg, cls='info') {
+  const d = document.createElement('div');
+  d.className = 'step ' + cls;
+  d.textContent = msg;
+  log.appendChild(d);
+}
+function pre(obj) {
+  const p = document.createElement('pre');
+  p.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  log.appendChild(p);
+}
+
+async function runDiag() {
+  document.getElementById('run-btn').disabled = true;
+  log = document.getElementById('log');
+  log.innerHTML = '';
+
+  // ── Step 1: Check static file serving ─────────────────────────
+  step('Step 1: Checking if gateway is reachable...', 'info');
+  try {
+    const r = await fetch('/api/v1/health');
+    step(`  → GET /api/v1/health → HTTP ${r.status}`, r.ok ? 'ok' : 'err');
+    const j = await r.json();
+    pre(j);
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 2: Check api.js is loadable ──────────────────────────
+  step('Step 2: Checking api.js serves...', 'info');
+  try {
+    const r = await fetch('/static/js/api.js');
+    step(`  → GET /static/js/api.js → HTTP ${r.status} (${(await r.text()).length} bytes)`, r.ok ? 'ok' : 'err');
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 3: Check app.js is loadable ──────────────────────────
+  step('Step 3: Checking app.js serves...', 'info');
+  try {
+    const r = await fetch('/static/js/app.js');
+    const txt = await r.text();
+    step(`  → GET /static/js/app.js → HTTP ${r.status} (${txt.length} bytes)`, r.ok ? 'ok' : 'err');
+    // Check for App.doLogin in the source
+    if (txt.includes('doLogin')) step('  → doLogin found in app.js ✓', 'ok');
+    else step('  → doLogin NOT found in app.js ✗', 'err');
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 4: Login API call ─────────────────────────────────────
+  step('Step 4: POST /api/v1/auth/token (login)...', 'info');
+  let token = null;
+  try {
+    const username = encodeURIComponent(document.getElementById('diag-username').value || '');
+    const password = encodeURIComponent(document.getElementById('diag-password').value || '');
+    const r = await fetch('/api/v1/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `username=${username}&password=${password}&grant_type=password`
+    });
+    step(`  → HTTP ${r.status}`, r.ok ? 'ok' : 'err');
+    if (r.ok) {
+      const j = await r.json();
+      token = j.access_token;
+      step('  → JWT received: ' + token.substring(0, 40) + '...', 'ok');
+    } else {
+      const txt = await r.text();
+      step('  → Response: ' + txt, 'err');
+    }
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  if (!token) { step('Cannot continue without token', 'err'); document.getElementById('run-btn').disabled = false; return; }
+
+  // ── Step 5: authMe ─────────────────────────────────────────────
+  step('Step 5: GET /api/v1/auth/me (authMe)...', 'info');
+  try {
+    const r = await fetch('/api/v1/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+    step(`  → HTTP ${r.status}`, r.ok ? 'ok' : 'err');
+    const j = await r.json();
+    pre(j);
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 6: localStorage.setItem ──────────────────────────────
+  step('Step 6: Test localStorage.setItem / getItem...', 'info');
+  try {
+    localStorage.setItem('_diag_test', 'hello');
+    const v = localStorage.getItem('_diag_test');
+    step('  → localStorage works: ' + (v === 'hello' ? 'YES ✓' : 'NO ✗'), v === 'hello' ? 'ok' : 'err');
+    localStorage.removeItem('_diag_test');
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 7: Check index.html element existence ─────────────────
+  step('Step 7: Checking main index.html DOM elements...', 'info');
+  try {
+    const r = await fetch('/');
+    const html = await r.text();
+    const checks = ['login-overlay', 'login-form', 'login-username', 'login-password', 'login-btn', 'page-content', 'breadcrumb-page'];
+    checks.forEach(id => {
+      const found = html.includes(`id="${id}"`);
+      step(`  → #${id}: ${found ? 'EXISTS ✓' : 'MISSING ✗'}`, found ? 'ok' : 'err');
+    });
+    // Check if display:none on login-overlay
+    if (html.includes('login-overlay') && html.includes('display:none')) step('  → login-overlay starts hidden ✓', 'ok');
+    else step('  → login-overlay display:none NOT found — may start visible', 'warn');
+    // Check script src
+    ['chart.umd.min.js', 'api.js', 'utils.js', 'app.js', 'init.js'].forEach(f => {
+      step(`  → <script src="...${f}">: ${html.includes(f) ? 'YES ✓' : 'NO ✗'}`, html.includes(f) ? 'ok' : 'err');
+    });
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 8: CSP header check ───────────────────────────────────
+  step('Step 8: Checking CSP header...', 'info');
+  try {
+    const r = await fetch('/');
+    const csp = r.headers.get('content-security-policy') || '(not set)';
+    step('  → CSP: ' + csp, csp.includes("script-src 'self'") ? 'ok' : 'warn');
+    if (csp.includes("'nonce-")) step("  → WARNING: nonce in CSP will block <script> tags!", 'err');
+    if (!csp.includes("'unsafe-inline'") && csp.includes("style-src")) step("  → style-src missing unsafe-inline — inline styles may be blocked", 'warn');
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 9: App object (if accessible) ────────────────────────
+  step('Step 9: Checking if App global is accessible...', 'info');
+  try {
+    if (typeof window.App !== 'undefined') {
+      step('  → window.App exists ✓', 'ok');
+      step('  → App.doLogin: ' + (typeof window.App.doLogin), 'ok');
+      step('  → App.navigate: ' + (typeof window.App.navigate), 'ok');
+      step('  → App.logout: ' + (typeof window.App.logout), 'ok');
+    } else {
+      step('  → window.App is NOT defined (expected — app.js not loaded here)', 'warn');
+      step('  → This is normal on this test page, not on index.html', 'info');
+    }
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Step 10: utils.js check ────────────────────────────────────
+  step('Step 10: Checking utils.js...', 'info');
+  try {
+    const r = await fetch('/static/js/utils.js');
+    const txt = await r.text();
+    step(`  → HTTP ${r.status}, ${txt.length} bytes`, r.ok ? 'ok' : 'err');
+    if (txt.includes('skeletonCards')) step('  → skeletonCards found ✓', 'ok');
+    else step('  → skeletonCards NOT found ✗', 'err');
+    if (txt.includes('loadingHTML')) step('  → loadingHTML found ✓', 'ok');
+    else step('  → loadingHTML NOT found ✗', 'err');
+  } catch(e) {
+    step('  → FAILED: ' + e.message, 'err');
+  }
+
+  // ── Done ───────────────────────────────────────────────────────
+  step('', 'info');
+  step('═══ Diagnostic Complete ═══', 'info');
+  const mainUrl = `${window.location.origin}/`;
+  step(`Open the browser DevTools Console (F12) on the main page ${mainUrl} and look for any red errors after clicking "Sign In".`, 'warn');
+  step(`Main page: ${mainUrl}`, 'info');
+
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('run-btn').textContent = '▶ Run Again';
+}
+</script>
+</body>
+</html>

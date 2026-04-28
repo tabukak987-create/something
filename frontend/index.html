@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PF Trust Investment System</title>
+  <meta name="description" content="Institutional PF Trust Fixed-Income Investment Management Platform" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='16' font-weight='bold' font-family='sans-serif'>PF</text></svg>" />
+  <!-- Chart.js served locally to avoid CDN dependency -->
+  <script src="/static/js/chart.umd.min.js?v=__APP_VERSION__"></script>
+  <link rel="stylesheet" href="/static/css/app.css?v=__APP_VERSION__" />
+  <!-- System dark-mode hint before JS loads — prevents flash of wrong theme -->
+  <style id="prefers-color-scheme-hint">
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme="light"]) { color-scheme: dark; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">PF</div>
+        <div class="sidebar-logo-text">
+          PF Trust
+          <small>Investment System</small>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a class="nav-item active" data-page="dashboard" href="#dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-item" data-page="portfolio" href="#portfolio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Portfolio
+        </a>
+        <a class="nav-item" data-page="bonds" href="#bonds">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Bonds Universe
+        </a>
+
+        <div class="nav-section-label">Analysis</div>
+        <a class="nav-item" data-page="recommendations" href="#recommendations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Best Quotes
+          <span class="nav-badge" style="background:#16a34a;color:#fff">Live</span>
+        </a>
+        <a class="nav-item" data-page="bond-allocation" href="#bond-allocation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l3 3 4-4"/></svg>
+          Bond Allocation
+          <span class="nav-badge" style="background:#2563eb;color:#fff">New</span>
+        </a>
+        <a class="nav-item" data-page="analysis" href="#analysis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21H4.6c-.56 0-.84 0-1.054-.109a1 1 0 01-.437-.437C3 20.24 3 19.96 3 19.4V3m17 5l-3.5 3.5L13 8l-4 4"/></svg>
+          Investment Analysis
+        </a>
+        <a class="nav-item" data-page="im-checker" href="#im-checker">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6M9 16h6M9 8h6M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z"/><path d="M15 2v4H9V2"/></svg>
+          Intelligence Center
+        </a>
+        <a class="nav-item" data-page="risk" href="#risk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Risk &amp; Compliance
+        </a>
+
+        <div class="nav-section-label">Operations</div>
+        <a class="nav-item" data-page="reports" href="#reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          Reports
+        </a>
+        <a class="nav-item" data-page="alerts" href="#alerts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Alerts
+          <span class="nav-badge" id="sidebar-alert-count" style="display:none">0</span>
+        </a>
+        <a class="nav-item" data-page="news" href="#news">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2"/><line x1="9" y1="9" x2="13" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>
+          Bond News
+        </a>
+        <a class="nav-item" data-page="datasources" href="#datasources">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M21 5v14c0 1.66-4 3-9 3s-9-1.34-9-3V5"/></svg>
+          Data Sources
+        </a>
+
+        <div class="nav-section-label">System</div>
+        <a class="nav-item" data-page="admin" href="#admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Admin Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle sidebar menu" aria-controls="sidebar" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-breadcrumb">
+            <span style="color:var(--text-muted)">PF Trust</span>
+            <span class="sep">/</span>
+            <span id="breadcrumb-page">Dashboard</span>
+          </div>
+        </div>
+
+        <div class="topbar-stats">
+          <div class="topbar-stat" data-tooltip="Total Assets Under Management">
+            <div class="topbar-stat-label">AUM</div>
+            <div class="topbar-stat-value" id="topbar-aum">--</div>
+          </div>
+          <div class="topbar-stat" data-tooltip="Current date">
+            <div class="topbar-stat-label">Date</div>
+            <div class="topbar-stat-value" id="topbar-date"></div>
+          </div>
+          <div class="topbar-stat" data-tooltip="Last market data update">
+            <div class="topbar-stat-label">Last Update</div>
+            <div class="topbar-stat-value" id="topbar-time"></div>
+          </div>
+          <div class="topbar-stat" data-tooltip="Active portfolio source">
+            <div class="topbar-stat-label">Source</div>
+            <div id="trust-source-badge" class="topbar-source-badge" aria-label="Active portfolio source">VMSPF sheet</div>
+          </div>
+        </div>
+
+        <!-- GLOBAL SEARCH -->
+        <div class="topbar-search" style="position:relative">
+          <label class="sr-only" for="global-search">Search bonds by ISIN or issuer</label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;opacity:.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search ISIN / Issuer..." id="global-search" autocomplete="off" aria-controls="search-results" aria-expanded="false" />
+          <div id="search-results" role="listbox" aria-label="Search suggestions" style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.15);max-height:300px;overflow-y:auto;display:none;z-index:200"></div>
+        </div>
+
+        <div class="topbar-actions">
+          <!-- Notification Bell -->
+          <button type="button" id="alerts-button" class="topbar-icon-btn" aria-label="Open alerts" data-tooltip="Alerts" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;color:var(--text-primary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notification-count" id="notification-count" style="position:absolute;top:0;right:0;background:var(--accent-red);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span>
+          </button>
+
+          <!-- User Dropdown -->
+          <div style="position:relative">
+            <button
+              type="button"
+              class="topbar-avatar"
+              id="topbar-avatar"
+              aria-haspopup="menu"
+              aria-controls="user-dropdown"
+              aria-expanded="false"
+              aria-label="Open system menu"
+              style="width:34px;height:34px;border-radius:50%;border:none;background:var(--accent-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer"
+            >
+              <span id="topbar-avatar-initials">—</span>
+            </button>
+            <div id="user-dropdown" class="user-dropdown" role="menu" aria-label="User menu" style="min-width:200px;z-index:300">
+              <div style="padding:14px 16px;border-bottom:1px solid var(--border-light)">
+                <div id="user-display-name" style="font-weight:600;font-size:14px">—</div>
+                <div id="user-display-role" style="font-size:12px;color:var(--text-muted)">Role: —</div>
+              </div>
+              <div style="padding:4px">
+                <button type="button" id="user-menu-admin" class="user-dropdown-item" role="menuitem" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text-secondary)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+                  Admin Settings
+                </button>
+                <label class="user-dropdown-item" for="dark-mode-toggle" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text-secondary)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                  Dark Mode
+                  <input type="checkbox" id="dark-mode-toggle" style="margin-left:auto" />
+                </label>
+              </div>
+              <div style="border-top:1px solid var(--border-light);padding:4px">
+                <button type="button" id="user-menu-logout" class="user-dropdown-item" role="menuitem" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--accent-red)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="content-area" id="page-content">
+        <div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:16px">
+          <div class="spinner" style="width:40px;height:40px"></div>
+          <div style="color:var(--text-muted);font-size:15px">Loading Dashboard...</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" id="modal-overlay" aria-hidden="true">
+    <div class="modal" id="modal-content" role="dialog" aria-modal="true" tabindex="-1"></div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.85);z-index:9999;align-items:center;justify-content:center;padding:24px;overflow-y:auto;backdrop-filter:blur(4px);box-sizing:border-box">
+    <div role="dialog" aria-modal="true" aria-labelledby="login-title" tabindex="-1" style="background:var(--bg-card);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.35);width:100%;max-width:420px;max-height:calc(100vh - 48px);padding:40px 36px;overflow:auto;box-sizing:border-box">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:52px;height:52px;border-radius:12px;background:var(--accent-blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto 14px">PF</div>
+        <div id="login-title" style="font-size:1.4rem;font-weight:800;color:var(--text-primary)">PF Trust Investment System</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px">Institutional Fixed-Income Platform</div>
+      </div>
+      <form id="login-form">
+        <div style="margin-bottom:16px">
+          <label for="login-username" style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">Username</label>
+          <input id="login-username" type="text" autocomplete="username" placeholder="admin" style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.92rem;background:var(--bg-input,var(--bg-tertiary));color:var(--text-primary);outline:none;box-sizing:border-box" />
+        </div>
+        <div style="margin-bottom:20px">
+          <label for="login-password" style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:6px;color:var(--text-secondary)">Password</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;padding:10px 14px;border:1.5px solid var(--border-light);border-radius:8px;font-size:0.92rem;background:var(--bg-input,var(--bg-tertiary));color:var(--text-primary);outline:none;box-sizing:border-box" />
+        </div>
+        <div id="login-error" aria-live="polite" style="color:var(--accent-red);font-size:0.8rem;min-height:18px;margin-bottom:12px"></div>
+        <button id="login-btn" type="submit" style="width:100%;padding:12px;background:var(--accent-blue);color:#fff;border:none;border-radius:8px;font-size:0.95rem;font-weight:700;cursor:pointer">Sign In</button>
+      </form>
+      <div style="margin-top:18px;padding:12px;background:var(--bg-tertiary);border-radius:8px;font-size:0.75rem;color:var(--text-muted)">
+        Contact your system administrator for login credentials.
+      </div>
+    </div>
+  </div>
+
+  <!-- APP SCRIPTS -->
+  <script src="/static/js/api.js?v=__APP_VERSION__"></script>
+  <script src="/static/js/utils.js?v=__APP_VERSION__"></script>
+  <script src="/static/js/app.js?v=__APP_VERSION__"></script>
+  <script src="/static/js/init.js?v=__APP_VERSION__"></script>
+</body>
+</html>

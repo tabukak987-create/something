@@ -1,0 +1,2954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PF Trust Bond Intelligence System</title>
+    <script src="/static/js/markdown-lite.js"></script>
+    <style>
+        /* Markdown report styles */
+        #reportContent h1 { font-size:1.5rem; font-weight:700; margin:0 0 8px; color:#93c5fd; }
+        #reportContent h2 { font-size:1.15rem; font-weight:600; margin:24px 0 8px; color:#7dd3fc; border-bottom:1px solid #2d3348; padding-bottom:4px; }
+        #reportContent h3 { font-size:1rem; font-weight:600; margin:16px 0 6px; color:#e2e8f0; }
+        #reportContent p  { margin:6px 0; color:#cbd5e1; }
+        #reportContent table { border-collapse:collapse; width:100%; margin:10px 0; font-size:12px; }
+        #reportContent th { background:#2d3348; padding:6px 10px; text-align:left; color:#94a3b8; font-weight:600; }
+        #reportContent td { padding:5px 10px; border-bottom:1px solid #1e2336; color:#e2e8f0; }
+        #reportContent tr:hover td { background:#1e2336; }
+        #reportContent blockquote { border-left:3px solid #4f8cff; margin:8px 0; padding:6px 12px; color:#94a3b8; background:#1e2336; border-radius:0 4px 4px 0; }
+        #reportContent ul, #reportContent ol { margin:6px 0 6px 20px; }
+        #reportContent li { margin:3px 0; color:#cbd5e1; }
+        #reportContent code { background:#2d3348; padding:1px 5px; border-radius:3px; font-family:monospace; font-size:11px; color:#93c5fd; }
+        #reportContent strong { color:#f1f5f9; }
+        #reportContent em { color:#94a3b8; }
+        #reportContent hr { border:none; border-top:1px solid #2d3348; margin:16px 0; }
+    </style>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0f1117; --surface: #1a1d27; --card: #22263a;
+            --accent: #4f8cff; --green: #22c55e; --red: #ef4444; --amber: #f59e0b;
+            --text: #e2e8f0; --muted: #94a3b8; --border: #2d3348;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header h1 span { color: var(--accent); }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+        .header-btn { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .header-btn:hover { opacity: 0.9; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; overflow-x: auto; }
+        .tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; transition: 0.2s; }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        
+        /* Main */
+        .main { padding: 20px 24px; }
+        
+        /* Stats row */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); border-radius: 10px; padding: 16px; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-value.green { color: var(--green); }
+        .stat-value.amber { color: var(--amber); }
+        .stat-value.red { color: var(--red); }
+        .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+        
+        /* Grid layout */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        @media (max-width: 1200px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        
+        /* Panel */
+        .panel { background: var(--card); border-radius: 10px; padding: 16px; border: 1px solid var(--border); }
+        .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .panel-title .icon { font-size: 16px; }
+        .panel-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+        .badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+        .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+        .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+        .badge-blue { background: rgba(79,140,255,0.15); color: var(--accent); }
+        
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .data-table th { text-align: left; padding: 8px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .data-table td { padding: 8px; border-bottom: 1px solid rgba(45,51,72,0.5); }
+        .data-table tr:hover { background: rgba(79,140,255,0.05); }
+        .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+        
+        /* Score bar */
+        .score-bar { width: 60px; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
+        .score-fill { height: 100%; border-radius: 3px; }
+        
+        /* Sections */
+        .section-tab { display: none; }
+        .section-tab.active { display: block; }
+        
+        /* Refresh */
+        .refresh-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .last-update { font-size: 11px; color: var(--muted); }
+        
+        /* Scrollable */
+        .scroll-y { max-height: 400px; overflow-y: auto; }
+        .scroll-y::-webkit-scrollbar { width: 4px; }
+        .scroll-y::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        
+        /* Compliance bar */
+        .compliance-bar { display: flex; gap: 2px; height: 24px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .compliance-segment { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
+        
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: var(--muted); }
+        .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Why tooltip */
+        .why-btn { background: none; border: 1px solid var(--border); color: var(--accent); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .why-btn:hover { background: var(--accent); color: #fff; }
+
+        /* Search */
+        .search-box { display: flex; gap: 8px; margin-bottom: 16px; }
+        .search-input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+        .search-input::placeholder { color: var(--muted); }
+        .filter-select { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+
+        /* Bond Detail styles */
+        .bd-back { background: none; border: 1px solid var(--border); color: var(--accent); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
+        .bd-back:hover { background: var(--accent); color: #fff; }
+        .bd-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .bd-title { font-size: 22px; font-weight: 700; }
+        .bd-isin { font-size: 13px; color: var(--muted); font-family: monospace; }
+        .bd-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+        .bd-section { margin-bottom: 20px; }
+        .bd-section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .bd-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .bd-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .bd-kv { background: var(--surface); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); }
+        .bd-kv-label { font-size: 10px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 2px; }
+        .bd-kv-value { font-size: 16px; font-weight: 700; }
+        .bd-kv-value.green { color: var(--green); }
+        .bd-kv-value.red { color: var(--red); }
+        .bd-kv-value.amber { color: var(--amber); }
+        .bd-kv-value.blue { color: var(--accent); }
+        .bd-risk-flag { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+        .bd-risk-flag.high { background: rgba(239,68,68,0.12); border-left: 3px solid var(--red); }
+        .bd-risk-flag.medium { background: rgba(245,158,11,0.12); border-left: 3px solid var(--amber); }
+        .bd-risk-flag.low { background: rgba(34,197,94,0.12); border-left: 3px solid var(--green); }
+        .bd-gauge { width: 180px; height: 100px; position: relative; margin: 0 auto; }
+        .bd-gauge-arc { fill: none; stroke-width: 14; stroke-linecap: round; }
+        .bd-gauge-label { font-size: 28px; font-weight: 800; text-anchor: middle; fill: var(--text); }
+        .bd-gauge-cat { font-size: 12px; text-anchor: middle; font-weight: 600; }
+        .bd-news-item { padding: 10px 14px; border-left: 3px solid var(--border); margin-bottom: 8px; border-radius: 0 6px 6px 0; background: var(--surface); }
+        .bd-news-item.positive { border-left-color: var(--green); }
+        .bd-news-item.negative { border-left-color: var(--red); }
+        .bd-news-item.neutral { border-left-color: var(--muted); }
+        .bd-scenario-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+        .bd-scenario-label { font-size: 11px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+        .bd-scenario-value { font-size: 18px; font-weight: 700; }
+        .bd-comp-rule { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(45,51,72,0.4); font-size: 13px; }
+        .bd-comp-icon { font-size: 16px; }
+        @media (max-width: 1000px) { .bd-grid-3, .bd-grid-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .bd-grid-3, .bd-grid-4 { grid-template-columns: 1fr; } }
+        .bd-clickable-row { cursor: pointer; }
+        .bd-clickable-row:hover { background: rgba(79,140,255,0.12) !important; }
+
+        /* Investment Analysis Tab */
+        .ia-section { border: 1px solid var(--border); border-radius: 10px; padding: 0; overflow: hidden; }
+        .ia-section .bd-section-title { margin-bottom: 0; padding: 14px 18px; background: var(--surface); cursor: pointer; user-select: none; border-bottom: none; position: relative; }
+        .ia-section .bd-section-title:hover { background: #1e2540; }
+        .ia-toggle { position: absolute; right: 18px; font-size: 11px; color: var(--muted); transition: transform 0.2s; }
+        .ia-section.collapsed .ia-toggle { transform: rotate(-90deg); }
+        .ia-body { padding: 16px 18px; }
+        .ia-section.collapsed .ia-body { display: none; }
+        .ia-heuristic-card { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; position: relative; }
+        .ia-heuristic-card.critical { background: rgba(239,68,68,0.15); border-left: 4px solid #dc2626; }
+        .ia-heuristic-card.high { background: rgba(239,68,68,0.10); border-left: 4px solid var(--red); }
+        .ia-heuristic-card.medium { background: rgba(245,158,11,0.10); border-left: 4px solid var(--amber); }
+        .ia-heuristic-card.low { background: rgba(34,197,94,0.08); border-left: 4px solid var(--green); }
+        .ia-heuristic-id { font-weight: 700; color: var(--accent); font-family: monospace; font-size: 12px; margin-right: 6px; }
+        .ia-heuristic-name { font-weight: 600; }
+        .ia-heuristic-detail { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+        .ia-heuristic-meta { display: flex; gap: 14px; margin-top: 6px; font-size: 11px; color: var(--muted); }
+        .ia-cat-card { background: var(--surface); border-radius: 8px; padding: 10px; border: 1px solid var(--border); text-align: center; }
+        .ia-cat-card .label { font-size: 10px; text-transform: uppercase; color: var(--muted); }
+        .ia-cat-card .val { font-size: 20px; font-weight: 700; margin: 4px 0; }
+        .ia-comp-bar { height: 8px; border-radius: 4px; background: var(--surface); overflow: hidden; }
+        .ia-comp-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+        .ia-epfo-check { padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; }
+        .ia-epfo-check.HARD_BREACH { background: rgba(239,68,68,0.12); border-left: 3px solid #dc2626; }
+        .ia-epfo-check.SOFT_BREACH { background: rgba(245,158,11,0.12); border-left: 3px solid var(--amber); }
+        .ia-epfo-check.EARLY_WARNING { background: rgba(96,165,250,0.10); border-left: 3px solid var(--accent); }
+        .ia-epfo-check.COMPLIANT { background: rgba(34,197,94,0.08); border-left: 3px solid var(--green); }
+
+        /* Compare Tab */
+        .compare-container { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .compare-col { padding: 0 12px; }
+        .compare-col:first-child { border-right: 1px solid var(--border); }
+        .compare-header { display: flex; gap: 8px; margin-bottom: 16px; align-items: flex-end; }
+        .compare-input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 14px; font-family: monospace; }
+        .compare-btn { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; }
+        .compare-btn:hover { opacity: 0.9; }
+        .compare-metric-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; border-bottom: 1px solid rgba(45,51,72,0.3); padding: 8px 0; align-items: center; }
+        .compare-metric-label { text-align: center; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; padding: 0 12px; }
+        .compare-metric-val { font-size: 14px; font-weight: 700; padding: 0 12px; }
+        .compare-metric-val.left { text-align: right; }
+        .compare-metric-val.right { text-align: left; }
+        .compare-winner { position: relative; }
+        .compare-winner::after { content: '★'; color: var(--green); font-size: 14px; margin-left: 4px; }
+
+        /* Sandbox Tab */
+        .sandbox-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .sandbox-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .sandbox-impact-card { display: flex; align-items: center; justify-content: center; flex-direction: column; background: var(--surface); border-radius: 8px; padding: 14px; border: 1px solid var(--border); text-align: center; }
+        .sandbox-impact-label { font-size: 10px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+        .sandbox-impact-before { font-size: 13px; color: var(--muted); margin: 2px 0; }
+        .sandbox-impact-after { font-size: 20px; font-weight: 800; }
+        .sandbox-impact-delta { font-size: 12px; margin-top: 2px; }
+
+        /* Chat UI */
+        .chat-container { display: flex; flex-direction: column; height: 400px; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { max-width: 85%; padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; }
+        .chat-msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+        .chat-msg.agent { align-self: flex-start; background: var(--card); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        .chat-msg.agent .confidence { font-size: 10px; color: var(--muted); margin-top: 6px; }
+        .chat-msg.agent .sources { font-size: 10px; color: var(--accent); margin-top: 4px; }
+        .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--card); }
+        .chat-input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 13px; }
+        .chat-send { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+
+        /* Credit Migration */
+        .migration-card { background: var(--card); border-radius: 10px; padding: 14px 18px; border: 1px solid var(--border); margin-bottom: 8px; }
+        .migration-card.CRITICAL { border-left: 4px solid #dc2626; }
+        .migration-card.WARNING { border-left: 4px solid var(--amber); }
+        .migration-card.STABLE { border-left: 4px solid var(--green); }
+        .migration-card.POSITIVE { border-left: 4px solid var(--accent); }
+
+        /* Gateway Push */
+        .gw-order-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .gw-order-card { background: var(--card); border-radius: 12px; padding: 24px; width: 480px; max-width: 90%; border: 1px solid var(--border); }
+        .gw-order-card h3 { margin-bottom: 16px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏦 <span>PF Trust</span> Bond Intelligence System</h1>
+        <div class="header-right">
+            <span class="status-dot" id="statusDot"></span>
+            <span style="font-size:12px;color:var(--muted)" id="statusText">Connecting...</span>
+            <button class="header-btn" onclick="runPipeline()">▶ Run Pipeline</button>
+            <button class="header-btn" onclick="refreshAll()" style="background:var(--surface);border:1px solid var(--border)">↻ Refresh</button>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('overview')">Overview</div>
+        <div class="tab" onclick="switchTab('report')">Reports</div>
+        <div class="tab" onclick="switchTab('top20')">Top 20 Bonds</div>
+        <div class="tab" onclick="switchTab('arbitrage')">Arbitrage</div>
+        <div class="tab" onclick="switchTab('portfolio')">Portfolio</div>
+        <div class="tab" onclick="switchTab('compliance')">Compliance</div>
+        <div class="tab" onclick="switchTab('optimizer')">Optimizer</div>
+        <div class="tab" onclick="switchTab('universe')">Bond Universe</div>
+        <div class="tab" id="bondDetailTab" style="display:none" onclick="switchTab('bonddetail')">📋 Bond Detail</div>
+        <div class="tab" id="investAnalysisTab" style="display:none" onclick="switchTab('investanalysis')">🔬 Investment Analysis</div>
+        <div class="tab" id="compareTab" onclick="switchTab('compare')">⚖️ Compare</div>
+        <div class="tab" onclick="switchTab('sandbox')">🧪 Sandbox</div>
+        <div class="tab" onclick="switchTab('creditmigration')">📉 Credit Alerts</div>
+    </div>
+    
+    <div class="main">
+        <!-- OVERVIEW TAB -->
+        <div class="section-tab active" id="tab-overview">
+            <div class="refresh-bar">
+                <div class="last-update" id="lastUpdate">Last updated: --</div>
+            </div>
+            
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card"><div class="stat-label">Total Bonds</div><div class="stat-value" id="statBonds">--</div><div class="stat-sub">In universe</div></div>
+                <div class="stat-card"><div class="stat-label">PF Eligible</div><div class="stat-value green" id="statEligible">--</div><div class="stat-sub">Investment grade</div></div>
+                <div class="stat-card"><div class="stat-label">Arbitrage Opps</div><div class="stat-value amber" id="statArb">--</div><div class="stat-sub">Active signals</div></div>
+                <div class="stat-card"><div class="stat-label">Portfolios</div><div class="stat-value" id="statPort">--</div><div class="stat-sub">Under management</div></div>
+                <div class="stat-card"><div class="stat-label">Compliance</div><div class="stat-value green" id="statCompliance">✓</div><div class="stat-sub">All clear</div></div>
+                <div class="stat-card"><div class="stat-label">System</div><div class="stat-value green" id="statSystem">●</div><div class="stat-sub" id="statSystemSub">Healthy</div></div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">⭐</span> Top Bonds by ISS Score</div>
+                    <div class="scroll-y">
+                        <table class="data-table" id="topBondsTable">
+                            <thead><tr><th>#</th><th>Issuer</th><th>Rating</th><th>Type</th><th>ISS</th><th></th></tr></thead>
+                            <tbody id="topBondsBody"><tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">💹</span> Arbitrage Opportunities</div>
+                    <div class="scroll-y">
+                        <table class="data-table" id="arbTable">
+                            <thead><tr><th>ISIN</th><th>Type</th><th>Spread (bps)</th><th>Action</th></tr></thead>
+                            <tbody id="arbBody"><tr><td colspan="4" class="loading"><div class="spinner"></div></td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">📊</span> Credit Allocation</div>
+                    <div id="creditChart" style="height:200px;display:flex;align-items:flex-end;gap:8px;padding-top:20px;"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">🔒</span> Recent Compliance Checks</div>
+                    <div class="scroll-y">
+                        <table class="data-table" id="complianceTable">
+                            <thead><tr><th>Portfolio</th><th>Bond</th><th>Result</th><th>Time</th></tr></thead>
+                            <tbody id="complianceBody"><tr><td colspan="4" class="loading"><div class="spinner"></div></td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TOP 20 TAB -->
+        <div class="section-tab" id="tab-top20">
+            <div class="panel">
+                <div class="panel-title"><span class="icon">🏆</span> Top 20 Bonds — Institutional Suitability Score (ISS)</div>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Composite score: Value (25%) + ALM Fit (25%) + Broker Opportunity (20%) + Liquidity (15%) + Credit Momentum (15%)</p>
+                <div class="scroll-y" style="max-height:600px;">
+                    <table class="data-table" id="top20Table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th><th>ISIN</th><th>Issuer</th><th>Type</th><th>Rating</th>
+                                <th class="num">Coupon</th><th class="num">YTM</th><th class="num">Duration</th>
+                                <th class="num">ISS Score</th><th>Rec</th><th>Why?</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top20Body"><tr><td colspan="11" class="loading"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ARBITRAGE TAB -->
+        <div class="section-tab" id="tab-arbitrage">
+            <div class="panel">
+                <div class="panel-title"><span class="icon">💹</span> Broker Arbitrage Scanner</div>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Cross-broker, vs-market, and inventory discount opportunities</p>
+                <div class="search-box">
+                    <input class="search-input" id="arbSearch" placeholder="Search by ISIN..." oninput="filterArbitrage()">
+                    <select class="filter-select" id="arbTypeFilter" onchange="filterArbitrage()">
+                        <option value="">All Types</option>
+                        <option value="CROSS_BROKER">Cross-Broker</option>
+                        <option value="VS_MARKET">Vs Market</option>
+                        <option value="INVENTORY_DISCOUNT">Inventory Discount</option>
+                    </select>
+                </div>
+                <div class="scroll-y" style="max-height:500px;">
+                    <table class="data-table">
+                        <thead><tr><th>ISIN</th><th>Type</th><th>Spread (bps)</th><th>Buy From</th><th>Sell To</th><th>Status</th></tr></thead>
+                        <tbody id="arbFullBody"><tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PORTFOLIO TAB -->
+        <div class="section-tab" id="tab-portfolio">
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">💼</span> Portfolios</div>
+                    <div id="portfolioList"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">📈</span> Portfolio Summary</div>
+                    <div id="portfolioSummary"><p style="color:var(--muted);font-size:12px;">Select a portfolio to view summary</p></div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-title"><span class="icon">📋</span> Holdings</div>
+                <div class="scroll-y" style="max-height:400px;">
+                    <table class="data-table">
+                        <thead><tr><th>ISIN</th><th>Issuer</th><th>Rating</th><th class="num">Face Value</th><th class="num">Market Value</th><th class="num">Weight</th><th></th></tr></thead>
+                        <tbody id="holdingsBody"><tr><td colspan="7" style="color:var(--muted);">Select a portfolio</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COMPLIANCE TAB -->
+        <div class="section-tab" id="tab-compliance">
+            <div class="panel">
+                <div class="panel-title"><span class="icon">🔒</span> Compliance Dashboard</div>
+                <div class="stats-row" style="margin-bottom:16px;">
+                    <div class="stat-card"><div class="stat-label">Total Checks</div><div class="stat-value" id="compTotal">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Passed</div><div class="stat-value green" id="compPassed">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Violations</div><div class="stat-value red" id="compViolations">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Warnings</div><div class="stat-value amber" id="compWarnings">--</div></div>
+                </div>
+                <div class="scroll-y" style="max-height:400px;">
+                    <table class="data-table">
+                        <thead><tr><th>Time</th><th>Portfolio</th><th>Bond</th><th>Type</th><th>Result</th><th>Score</th><th>Details</th></tr></thead>
+                        <tbody id="compFullBody"><tr><td colspan="7" class="loading"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- OPTIMIZER TAB -->
+        <div class="section-tab" id="tab-optimizer">
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">🎯</span> Portfolio Optimizer</div>
+                    <div style="display:grid;gap:12px;">
+                        <div>
+                            <label style="font-size:12px;color:var(--muted);">Portfolio ID</label>
+                            <input class="search-input" id="optPortfolio" value="default" style="width:100%;margin-top:4px;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:var(--muted);">Cash Available (₹)</label>
+                            <input class="search-input" id="optCash" value="100000000" type="number" style="width:100%;margin-top:4px;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:var(--muted);">Target Duration (years)</label>
+                            <input class="search-input" id="optDuration" value="5.5" type="number" step="0.1" style="width:100%;margin-top:4px;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:var(--muted);">Risk Tolerance</label>
+                            <select class="filter-select" id="optRisk" style="width:100%;margin-top:4px;">
+                                <option value="CONSERVATIVE" selected>Conservative</option>
+                                <option value="MODERATE">Moderate</option>
+                                <option value="AGGRESSIVE">Aggressive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:var(--muted);">Method</label>
+                            <select class="filter-select" id="optMethod" style="width:100%;margin-top:4px;">
+                                <option value="CONSTRAINED" selected>Constrained Optimization</option>
+                                <option value="MONTE_CARLO">Monte Carlo</option>
+                            </select>
+                        </div>
+                        <button class="header-btn" onclick="runOptimizer()" style="width:100%;">⚡ Optimize</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title"><span class="icon">📊</span> Optimization Results</div>
+                    <div id="optResults"><p style="color:var(--muted);font-size:12px;">Run optimizer to see results</p></div>
+                </div>
+            </div>
+            <div class="panel" id="optMixPanel" style="display:none;">
+                <div class="panel-title"><span class="icon">🧩</span> Optimal Bond Mix</div>
+                <div class="scroll-y" style="max-height:400px;">
+                    <table class="data-table">
+                        <thead><tr><th>ISIN</th><th>Issuer</th><th>Rating</th><th class="num">YTM</th><th class="num">Duration</th><th class="num">Alloc (₹)</th><th class="num">Weight</th><th>Rationale</th></tr></thead>
+                        <tbody id="optMixBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- REPORT TAB -->
+        <div class="section-tab" id="tab-report">
+            <div class="panel">
+                <div class="panel-title"><span class="icon">📄</span> Market Report — Central / Government / Private</div>
+                <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+                    <button class="header-btn" onclick="loadReport()">⟳ Generate Report</button>
+                    <button class="header-btn" onclick="downloadPDF()" style="background:#15803d;">⬇ Download PDF</button>
+                    <button class="header-btn" onclick="saveReport()" style="background:var(--surface);border:1px solid var(--border)">⬇ Save Markdown</button>
+                    <span style="color:var(--muted);font-size:12px;margin-left:8px;">or</span>
+                    <button class="header-btn" onclick="refreshMarketData()" style="background:#7c3aed;">⚡ Refresh Market Data</button>
+                    <label class="header-btn" style="background:#0e7490;cursor:pointer;">
+                        📥 Import CSV
+                        <input type="file" accept=".csv" id="csvUpload" style="display:none" onchange="uploadCSV(this)">
+                    </label>
+                    <span id="refreshStatus" style="font-size:12px;color:var(--muted);"></span>
+                </div>
+                <div id="reportContent" style="background:#1a1f2e;padding:20px 24px;border-radius:6px;max-height:680px;overflow-y:auto;font-size:13px;color:#e2e8f0;line-height:1.7;">
+                    <div style="color:#64748b;text-align:center;padding:60px 0;">Click <strong>Generate Report</strong> to run a full bond universe scan.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNIVERSE TAB -->
+        <div class="section-tab" id="tab-universe">
+            <div class="panel">
+                <div class="panel-title"><span class="icon">🌐</span> Bond Universe</div>
+                <div class="search-box">
+                    <input class="search-input" id="universeSearch" placeholder="Search by name, ISIN, issuer..." oninput="searchBonds()">
+                    <select class="filter-select" id="universeType" onchange="searchBonds()">
+                        <option value="">All Types</option>
+                        <option value="G-SEC">G-Sec</option>
+                        <option value="SDL">SDL</option>
+                        <option value="PSU">PSU</option>
+                        <option value="BANK">Bank</option>
+                        <option value="NBFC">NBFC</option>
+                        <option value="CORPORATE">Corporate</option>
+                    </select>
+                    <select class="filter-select" id="universeRating" onchange="searchBonds()">
+                        <option value="">All Ratings</option>
+                        <option value="SOVEREIGN">Sovereign</option>
+                        <option value="AAA">AAA</option>
+                        <option value="AA+">AA+</option>
+                        <option value="AA">AA</option>
+                        <option value="A">A</option>
+                    </select>
+                </div>
+                <div class="scroll-y" style="max-height:600px;">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>ISIN</th><th>Bond Name</th><th>Issuer</th><th>Type</th><th>Rating</th>
+                            <th class="num">Coupon</th><th>Maturity</th><th>PF Eligible</th></tr>
+                        </thead>
+                        <tbody id="universeBody"><tr><td colspan="8" class="loading"><div class="spinner"></div></td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOND DETAIL TAB -->
+        <div class="section-tab" id="tab-bonddetail">
+            <button class="bd-back" onclick="closeBondDetail()">← Back</button>
+
+            <!-- Section 1: Bond Overview -->
+            <div class="bd-header" id="bdHeader">
+                <div>
+                    <div class="bd-title" id="bdTitle">Loading...</div>
+                    <div class="bd-isin" id="bdISIN"></div>
+                    <div class="bd-tags" id="bdTags"></div>
+                </div>
+                <div style="text-align:right;" id="bdISSScore"></div>
+            </div>
+            <div class="bd-section">
+                <div class="bd-section-title"><span>📋</span> 1. Bond Overview</div>
+                <div class="bd-grid-4" id="bdOverviewKV"></div>
+                <div style="margin-top:12px;" id="bdOverviewExtra"></div>
+            </div>
+
+            <!-- Section 2: Real-Time Market Data -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>📈</span> 2. Real-Time Market Data</div>
+                <div class="bd-grid-4" id="bdMarketKV"></div>
+                <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="bdMarketExtra">
+                    <div class="panel" id="bdLiquidityPanel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">💧</span> Liquidity Profile</div>
+                        <div id="bdLiquidityBody"></div>
+                    </div>
+                    <div class="panel" id="bdBrokerQuotes">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">🤝</span> Best Broker Quotes</div>
+                        <table class="data-table" style="font-size:11px;">
+                            <thead><tr><th>Broker</th><th class="num">Bid YTM</th><th class="num">Ask YTM</th><th class="num">Spread(bps)</th></tr></thead>
+                            <tbody id="bdBrokerBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: IM Extracted Intelligence -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>📜</span> 3. IM Extracted Intelligence</div>
+                <div id="bdIMNoData" style="display:none;color:var(--muted);font-size:12px;padding:12px;background:var(--surface);border-radius:6px;">No IM data. Upload a PDF via the API to extract IM intelligence.</div>
+                <div id="bdIMContent" style="display:none;">
+                    <div class="bd-grid-4" id="bdIMKV" style="margin-bottom:12px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:12px;"><span class="icon">⚑</span> Risk Flags</div>
+                            <div id="bdRiskFlags"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:12px;"><span class="icon">📜</span> Covenant vs Actual</div>
+                            <table class="data-table" style="font-size:11px;">
+                                <thead><tr><th>Covenant</th><th class="num">Threshold</th><th class="num">Actual</th><th>Status</th></tr></thead>
+                                <tbody id="bdCovenantBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Issuer Financial Analysis -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>💰</span> 4. Issuer Financial Analysis</div>
+                <div id="bdFinNoData" style="display:none;color:var(--muted);font-size:12px;padding:12px;background:var(--surface);border-radius:6px;">No financial data stored for this issuer.</div>
+                <div id="bdFinContent" style="display:none;">
+                    <div class="bd-grid-4" id="bdFinKV" style="margin-bottom:12px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:12px;"><span class="icon">📊</span> Key Financial Ratios</div>
+                            <table class="data-table" style="font-size:11px;">
+                                <thead><tr><th>Ratio</th><th class="num">Value</th><th>Signal</th></tr></thead>
+                                <tbody id="bdRatiosBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:12px;"><span class="icon">📉</span> Trend Analysis</div>
+                            <div id="bdTrendsBody" style="display:grid;gap:6px;font-size:12px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: News & Event Intelligence -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>📰</span> 5. News & Event Intelligence</div>
+                <div class="bd-grid-4" id="bdNewsKV" style="margin-bottom:12px;"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">⚡</span> Event Risks</div>
+                        <div id="bdEventRisks"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">📰</span> Recent News</div>
+                        <div id="bdNewsList" class="scroll-y" style="max-height:220px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Portfolio Impact -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>💼</span> 6. Portfolio Impact</div>
+                <div id="bdPortNoData" style="display:none;color:var(--muted);font-size:12px;padding:12px;background:var(--surface);border-radius:6px;">Select a portfolio in the Portfolio tab to see impact analysis.</div>
+                <div id="bdPortContent">
+                    <div class="bd-grid-4" id="bdPortKV" style="margin-bottom:12px;"></div>
+                    <div class="panel" id="bdPortHoldings">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">📋</span> Held In Portfolios</div>
+                        <table class="data-table" style="font-size:11px;">
+                            <thead><tr><th>Portfolio</th><th class="num">Face Value</th><th class="num">Market Value</th><th class="num">Weight</th><th class="num">YTM</th></tr></thead>
+                            <tbody id="bdPortHoldingsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Advanced Quant Analytics -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>🔬</span> 7. Advanced Quant Analytics & Scenario Analysis</div>
+                <div class="bd-grid-4" id="bdQuantKV" style="margin-bottom:12px;"></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;" id="bdScenarios"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">📉</span> Default Probability Analysis</div>
+                        <div id="bdDefaultAnalysis" style="font-size:13px;"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">💡</span> Recovery Estimation</div>
+                        <div id="bdRecoveryAnalysis" style="font-size:13px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 8: Compliance & Regulatory -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>🔒</span> 8. Compliance & Regulatory Validation</div>
+                <div class="bd-grid-4" id="bdCompKV" style="margin-bottom:12px;"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">✅</span> Compliance Rules Check</div>
+                        <div id="bdCompRules"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">📋</span> Regulatory Notes</div>
+                        <div id="bdRegNotes" style="font-size:12px;line-height:1.7;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 9: Internal Risk Score -->
+            <div class="bd-section">
+                <div class="bd-section-title"><span>🎯</span> 9. Internal Risk Score Engine</div>
+                <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;align-items:start;" id="bdRiskLayout">
+                    <div class="panel" style="text-align:center;">
+                        <div class="panel-title" style="font-size:12px;justify-content:center;"><span class="icon">🎯</span> Composite Risk Score</div>
+                        <svg viewBox="0 0 180 100" width="180" height="100" id="bdGauge">
+                            <path d="M20,90 A70,70 0 0,1 160,90" fill="none" stroke="#1e293b" stroke-width="14" stroke-linecap="round"/>
+                            <path id="bdGaugeArc" d="M20,90 A70,70 0 0,1 160,90" fill="none" stroke="#4f8cff" stroke-width="14" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="220"/>
+                            <text id="bdGaugeText" x="90" y="86" class="bd-gauge-label">--</text>
+                            <text id="bdGaugeCat" x="90" y="100" class="bd-gauge-cat" fill="#94a3b8">--</text>
+                        </svg>
+                        <div id="bdRiskCategory" style="font-size:13px;font-weight:600;margin-top:4px;"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title" style="font-size:12px;"><span class="icon">📊</span> Component Scores</div>
+                        <div id="bdComponentScores" style="display:grid;gap:8px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top:12px;" class="panel">
+                    <div class="panel-title" style="font-size:12px;"><span class="icon">📜</span> Investment Recommendation</div>
+                    <div id="bdRecommendation" style="font-size:13px;line-height:1.7;color:var(--muted);padding:8px 0;">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             INVESTMENT ANALYSIS TAB (10 SECTIONS)
+             ════════════════════════════════════════════════════════════ -->
+        <div class="section-tab" id="tab-investanalysis">
+            <button class="bd-back" onclick="closeInvestAnalysis()">← Back to Bonds</button>
+            <div class="bd-header" id="iaHeader">
+                <div>
+                    <div class="bd-title" id="iaTitle">Investment Analysis</div>
+                    <div class="bd-isin" id="iaISIN"></div>
+                    <div class="bd-tags" id="iaTags"></div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="iaRiskBadge" style="font-size:22px;font-weight:700;"></div>
+                    <div id="iaRiskLabel" style="font-size:11px;color:var(--muted);"></div>
+                </div>
+            </div>
+
+            <!-- IA Section 1: Snapshot -->
+            <div class="bd-section ia-section" id="iaSnap">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>📊</span> 1. Bond Snapshot <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaSnapKV"></div>
+                    <div style="margin-top:10px;">
+                        <div class="panel-title" style="font-size:11px;"><span class="icon">📈</span> Rating History</div>
+                        <table class="data-table" style="font-size:11px;">
+                            <thead><tr><th>Date</th><th>Agency</th><th>Old</th><th>New</th><th>Outlook</th></tr></thead>
+                            <tbody id="iaRatingBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 2: Real-Time Pricing -->
+            <div class="bd-section ia-section" id="iaPricing">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>💹</span> 2. Real-Time Pricing & Analytics <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaPricingKV"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">⏱</span> Duration & Risk Metrics</div>
+                            <div id="iaDurationMetrics"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📊</span> Price Sensitivity (bps shocks)</div>
+                            <table class="data-table" style="font-size:11px;">
+                                <thead><tr><th>Shock</th><th class="num">Yield</th><th class="num">Price</th><th class="num">P&L</th><th class="num">%Chg</th></tr></thead>
+                                <tbody id="iaSensitivityBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;" class="panel">
+                        <div class="panel-title" style="font-size:11px;"><span class="icon">💱</span> Spread Analysis</div>
+                        <div class="bd-grid-4" id="iaSpreadKV"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 3: IM Intelligence -->
+            <div class="bd-section ia-section" id="iaIM">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>📜</span> 3. IM Extracted Intelligence <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaIMKV"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">⚑</span> Risk Flags from IM</div>
+                            <div id="iaIMRiskFlags"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📜</span> Covenant vs Actual</div>
+                            <table class="data-table" style="font-size:11px;">
+                                <thead><tr><th>Covenant</th><th class="num">Limit</th><th class="num">Actual</th><th>Status</th></tr></thead>
+                                <tbody id="iaCovenantBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 4: Hidden Risk (H1-H24) -->
+            <div class="bd-section ia-section" id="iaHiddenRisk">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>🔍</span> 4. Hidden Risk Detection (H1-H24) 
+                    <span id="iaHRQuickBadge" style="margin-left:8px;font-size:12px;"></span>
+                    <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <!-- Risk Score Gauge -->
+                    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;margin-bottom:16px;">
+                        <div class="panel" style="text-align:center;padding:20px;">
+                            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Hidden Risk Score</div>
+                            <div id="iaHRGaugeScore" style="font-size:48px;font-weight:800;margin:8px 0;">--</div>
+                            <div id="iaHRGaugeLevel" style="font-size:13px;font-weight:700;"></div>
+                            <div style="margin-top:8px;">
+                                <div class="ia-comp-bar" style="height:10px;"><div class="ia-comp-fill" id="iaHRGaugeBar" style="width:0%;"></div></div>
+                            </div>
+                        </div>
+                        <div class="bd-grid-4" id="iaHRSummary"></div>
+                    </div>
+                    <!-- Composite Risk Components -->
+                    <div style="margin-bottom:16px;">
+                        <div class="panel-title" style="font-size:11px;"><span class="icon">🧮</span> Composite Risk Score Breakdown</div>
+                        <div id="iaHRComposite" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <div class="panel-title" style="font-size:11px;"><span class="icon">📋</span> Category Breakdown</div>
+                        <div id="iaHRCategories" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;"></div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <div class="panel-title" style="font-size:12px;font-weight:700;"><span class="icon">⚠</span> Triggered Heuristics</div>
+                        <div id="iaHRTriggered"></div>
+                    </div>
+                    <details style="margin-top:16px;">
+                        <summary style="cursor:pointer;font-size:12px;color:var(--muted);font-weight:600;">✅ Passed Heuristics (click to expand)</summary>
+                        <div id="iaHRPassed" style="font-size:11px;color:var(--muted);margin-top:8px;"></div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- IA Section 5: Financial Analysis -->
+            <div class="bd-section ia-section" id="iaFinancial">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>💰</span> 5. Issuer Financial Analysis <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaFinKV"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📊</span> Key Financial Ratios</div>
+                            <table class="data-table" style="font-size:11px;">
+                                <thead><tr><th>Ratio</th><th class="num">Value</th><th>Signal</th></tr></thead>
+                                <tbody id="iaRatiosBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📈</span> Health Score & Trends</div>
+                            <div id="iaFinTrends"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 6: News & Events -->
+            <div class="bd-section ia-section" id="iaNews">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>📰</span> 6. News & Event Intelligence <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaNewsKV"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">⚡</span> Event Risks</div>
+                            <div id="iaEventRisks"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📰</span> Latest News</div>
+                            <div id="iaNewsList" class="scroll-y" style="max-height:220px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 7: Quant Analytics -->
+            <div class="bd-section ia-section" id="iaQuant">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>🔬</span> 7. Quant Analytics & Scenarios <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div style="display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start;">
+                        <div class="panel" style="text-align:center;">
+                            <div class="panel-title" style="font-size:11px;justify-content:center;"><span class="icon">🎯</span> Risk Score</div>
+                            <div id="iaScoreGauge" style="font-size:42px;font-weight:800;margin:10px 0;">--</div>
+                            <div id="iaScoreCategory" style="font-size:13px;font-weight:600;"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📊</span> Risk Components (% weight)</div>
+                            <div id="iaRiskComponents" style="display:grid;gap:6px;"></div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;" id="iaScenarios"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📉</span> Default Analysis</div>
+                            <div id="iaDefaultAnalysis"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">💡</span> Recovery</div>
+                            <div id="iaRecovery"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 8: Compliance Status -->
+            <div class="bd-section ia-section" id="iaCompliance">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>🔒</span> 8. Compliance & EPFO Simulation <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaCompKV"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">✅</span> Pre-Trade Compliance</div>
+                            <div id="iaCompRules"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">🏛</span> EPFO Simulation</div>
+                            <div id="iaEPFOChecks"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 9: Portfolio Impact -->
+            <div class="bd-section ia-section" id="iaPortfolio">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>💼</span> 9. Portfolio Impact <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div id="iaPortNoData" style="color:var(--muted);font-size:12px;">Portfolio impact requires portfolio selection.</div>
+                    <div class="bd-grid-4" id="iaPortKV"></div>
+                </div>
+            </div>
+
+            <!-- IA Section 10: Audit Trail -->
+            <div class="bd-section ia-section" id="iaAudit">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>📝</span> 10. Audit Trail & Data Provenance <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div class="bd-grid-4" id="iaAuditKV"></div>
+                    <div style="margin-top:10px;">
+                        <div class="panel-title" style="font-size:11px;"><span class="icon">📋</span> Recent Analysis Events</div>
+                        <table class="data-table" style="font-size:11px;">
+                            <thead><tr><th>Time</th><th>Type</th><th>Action</th><th>Module</th></tr></thead>
+                            <tbody id="iaAuditBody"></tbody>
+                        </table>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📊</span> Data Sources</div>
+                            <div id="iaDataSources"></div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">📈</span> Risk Score History</div>
+                            <div id="iaScoreHistory"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 11: Bond Agent Q&A -->
+            <div class="bd-section ia-section" id="iaAgent">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>🤖</span> 11. Bond Agent Q&A <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <p style="font-size:11px;color:var(--muted);margin-bottom:8px;">Ask questions about this bond — covenants, asset coverage, yield comparisons, default risk, etc.</p>
+                    <div class="chat-container" id="agentChat">
+                        <div class="chat-messages" id="agentChatMessages">
+                            <div class="chat-msg agent">Hello! I'm the Bond Intelligence Agent. Ask me anything about this bond — covenants, risks, yields, or comparisons. 🤖</div>
+                        </div>
+                        <div class="chat-input-row">
+                            <input type="text" class="chat-input" id="agentChatInput" placeholder="e.g. What covenants protect this bond?" onkeydown="if(event.key==='Enter')askBondAgent()" />
+                            <button class="chat-send" onclick="askBondAgent()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Section 12: Institutional Due Diligence & IC Report -->
+            <div class="bd-section ia-section" id="iaDueDiligence">
+                <div class="bd-section-title ia-collapsible" onclick="toggleIA(this)">
+                    <span>🏛</span> 12. Institutional Due Diligence &amp; IC Report
+                    <span id="iaDDRecomBadge" style="margin-left:8px;font-size:12px;"></span>
+                    <span class="ia-toggle">▼</span>
+                </div>
+                <div class="ia-body">
+                    <div id="iaDDLoading" style="text-align:center;padding:24px;color:var(--muted);">
+                        <div class="spinner"></div>
+                        <div style="margin-top:8px;font-size:12px;">Running institutional due diligence engines…</div>
+                    </div>
+                    <div id="iaDDError" style="display:none;color:var(--red);font-size:12px;padding:16px;border-radius:6px;background:rgba(239,68,68,0.08);"></div>
+                    <div id="iaDDContent" style="display:none;">
+                        <!-- Recommendation + Classification panel -->
+                        <div style="display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:start;margin-bottom:16px;">
+                            <div class="panel" style="text-align:center;padding:18px;">
+                                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">IC Recommendation</div>
+                                <div id="iaDDRecom" style="font-size:26px;font-weight:800;line-height:1.2;">--</div>
+                                <div id="iaDDClass" style="font-size:11px;color:var(--accent);font-weight:600;margin-top:4px;"></div>
+                                <div id="iaDDScore" style="font-size:12px;color:var(--muted);margin-top:4px;"></div>
+                            </div>
+                            <div class="bd-grid-4" id="iaDDSummaryKV"></div>
+                        </div>
+                        <!-- 11-Factor DD scores -->
+                        <div style="margin-bottom:16px;">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">🔍</span> 11-Factor Due Diligence Scores</div>
+                            <div id="iaDDFactors" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;"></div>
+                        </div>
+                        <!-- IC Note 8 sections -->
+                        <div style="margin-bottom:16px;">
+                            <div class="panel-title" style="font-size:12px;font-weight:700;"><span class="icon">📋</span> IC Note — 8 Sections</div>
+                            <div id="iaDDICNote" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;"></div>
+                        </div>
+                        <!-- Compliance Gates -->
+                        <div class="panel">
+                            <div class="panel-title" style="font-size:11px;"><span class="icon">🚦</span> Compliance Gates (7 checks)</div>
+                            <div id="iaDDGates" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IA Action Buttons -->
+            <div style="display:flex;gap:10px;margin-top:16px;padding:12px 0;border-top:1px solid var(--border);">
+                <button class="compare-btn" onclick="exportPDF()" style="background:var(--green);">📄 Export PDF Report</button>
+                <button class="compare-btn" onclick="addToSandboxFromIA()" style="background:#7c3aed;">🧪 Add to Sandbox</button>
+                <button class="compare-btn" onclick="pushToGateway()" style="background:#dc2626;">🚀 Push to Gateway (Order)</button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             COMPARE TAB
+             ════════════════════════════════════════════════════════════ -->
+        <div class="section-tab" id="tab-compare">
+            <h2 style="margin-bottom:16px;">⚖️ Side-by-Side Bond Comparison</h2>
+            <div class="compare-header">
+                <input type="text" id="compareIsin1" class="compare-input" placeholder="ISIN 1 (e.g. INE020B08BE6)" />
+                <input type="text" id="compareIsin2" class="compare-input" placeholder="ISIN 2 (e.g. INE514E08FI4)" />
+                <button class="compare-btn" onclick="loadCompare()">Compare</button>
+            </div>
+            <div id="compareStatus" style="color:var(--muted);font-size:12px;margin-bottom:8px;"></div>
+            <div id="compareResult" style="display:none;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px;">
+                    <div id="compareName1" style="font-size:18px;font-weight:700;text-align:center;"></div>
+                    <div id="compareName2" style="font-size:18px;font-weight:700;text-align:center;"></div>
+                </div>
+                <div id="compareSummary" style="background:var(--surface);padding:14px;border-radius:10px;margin-bottom:16px;font-size:13px;border:1px solid var(--border);"></div>
+                <div id="compareMetrics"></div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             SANDBOX TAB
+             ════════════════════════════════════════════════════════════ -->
+        <div class="section-tab" id="tab-sandbox">
+            <h2 style="margin-bottom:16px;">🧪 Trade Sandbox</h2>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Simulate buying or selling bonds to see how it would impact portfolio metrics before committing.</p>
+            <div class="sandbox-form">
+                <div class="sandbox-field">
+                    <label>Portfolio</label>
+                    <select id="sbxPortfolio" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;">
+                        <option value="default">Default Portfolio</option>
+                    </select>
+                </div>
+                <div class="sandbox-field">
+                    <label>ISIN</label>
+                    <input type="text" id="sbxIsin" placeholder="Enter ISIN" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;font-family:monospace;" />
+                </div>
+                <div class="sandbox-field">
+                    <label>Trade Type</label>
+                    <select id="sbxTradeType" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;">
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                    </select>
+                </div>
+                <div class="sandbox-field">
+                    <label>Face Value (₹ Cr)</label>
+                    <input type="number" id="sbxFaceValue" value="10" min="0.1" step="0.1" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:6px;" />
+                </div>
+            </div>
+            <button class="compare-btn" onclick="runSandboxSimulation()" style="margin-bottom:20px;">🧪 Run Simulation</button>
+            <div id="sbxStatus" style="color:var(--muted);font-size:12px;margin-bottom:8px;"></div>
+            <div id="sbxResult" style="display:none;">
+                <h3 style="margin-bottom:10px;font-size:15px;">Impact Analysis</h3>
+                <div id="sbxImpactGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div>
+                        <h4 style="font-size:13px;color:var(--muted);margin-bottom:8px;">Compliance Alerts</h4>
+                        <div id="sbxAlerts"></div>
+                    </div>
+                    <div>
+                        <h4 style="font-size:13px;color:var(--muted);margin-bottom:8px;">Bond Details</h4>
+                        <div id="sbxBondInfo"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top:24px;">
+                <h3 style="margin-bottom:10px;font-size:15px;">📋 Simulation History</h3>
+                <div id="sbxHistory" style="font-size:12px;color:var(--muted);">No simulations yet.</div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             CREDIT MIGRATION ALERTS TAB
+             ════════════════════════════════════════════════════════════ -->
+        <div class="section-tab" id="tab-creditmigration">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2>📉 Credit Migration Alerts</h2>
+                <button class="compare-btn" onclick="loadCreditAlerts()">🔄 Scan Now</button>
+            </div>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">AI-powered early warning for potential rating downgrades. Analyzes financial deterioration signals, sector trends, and market spreads.</p>
+            <div id="cmStatus" style="color:var(--muted);font-size:12px;margin-bottom:8px;"></div>
+            <div id="cmSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;"></div>
+            <div id="cmAlertsList"></div>
+        </div>
+
+    </div>
+
+    <script>
+    const API = '/api/v1';
+    let allArbitrage = [];
+    
+    // ─── TAB SWITCHING ──────────────────────────────────────────
+    function switchTab(name) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
+        
+        // Load data for tab
+        if (name === 'top20') loadTop20();
+        if (name === 'arbitrage') loadArbitrage();
+        if (name === 'portfolio') loadPortfolios();
+        if (name === 'compliance') loadCompliance();
+        if (name === 'universe') searchBonds();
+        if (name === 'report') loadReport();
+        if (name === 'creditmigration') loadCreditAlerts();
+    }
+    
+    // ─── REPORT ──────────────────────────────────────────────
+    let _lastReportMarkdown = '';
+
+    async function loadReport() {
+        document.getElementById('reportContent').innerHTML = '<div style="color:#64748b;text-align:center;padding:60px 0;"><div class="spinner"></div><br>Analyzing entire bond universe…</div>';
+        const data = await api('/reports/full');
+        if (data && data.report) {
+            _lastReportMarkdown = data.report;
+            document.getElementById('reportContent').innerHTML = marked.parse(data.report);
+        } else {
+            document.getElementById('reportContent').innerHTML = '<div style="color:#ef4444;padding:20px;">Failed to generate report. Check server logs.</div>';
+        }
+    }
+
+    function saveReport() {
+        const text = _lastReportMarkdown || document.getElementById('reportContent').innerText;
+        const blob = new Blob([text], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Bond_Market_Report_${new Date().toISOString().split('T')[0]}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function downloadPDF() {
+        const status = document.getElementById('refreshStatus');
+        status.textContent = 'Generating PDF…';
+        const a = document.createElement('a');
+        a.href = `${API}/reports/full/pdf`;
+        a.download = `Bond_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => status.textContent = '', 3000);
+    }
+
+    async function refreshMarketData() {
+        const status = document.getElementById('refreshStatus');
+        status.textContent = '⚡ Refreshing market data…';
+        const data = await api('/market-data/refresh', { method: 'POST' });
+        if (data) {
+            status.textContent = `✅ Updated ${data.updated} bonds (${data.source || 'Synthetic'})`;
+        } else {
+            status.textContent = '❌ Refresh failed';
+        }
+        setTimeout(() => status.textContent = '', 5000);
+    }
+
+    async function uploadCSV(input) {
+        if (!input.files[0]) return;
+        const status = document.getElementById('refreshStatus');
+        status.textContent = '📥 Uploading…';
+        const form = new FormData();
+        form.append('file', input.files[0]);
+        try {
+            const res = await fetch(`${API}/admin/import/csv`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (res.ok) {
+                status.textContent = `✅ Imported: ${data.created} created, ${data.updated} updated`;
+            } else {
+                status.textContent = `❌ ${data.detail || 'Import failed'}`;
+            }
+        } catch(e) {
+            status.textContent = '❌ Upload error';
+        }
+        input.value = '';
+        setTimeout(() => status.textContent = '', 6000);
+    }
+    
+    // ─── API HELPERS ──────────────────────────────────────────
+    async function api(path, options) {
+        try {
+            const res = await fetch(API + path, options);
+            if (!res.ok) throw new Error(res.statusText);
+            return await res.json();
+        } catch (e) {
+            console.error('API Error:', path, e);
+            return null;
+        }
+    }
+    
+    function fmt(n, dec = 2) { return n != null ? Number(n).toFixed(dec) : '--'; }
+    function fmtCr(n) { return n != null ? '₹' + (Number(n) / 10000000).toFixed(2) + ' Cr' : '--'; }
+    function fmtLakh(n) { return n != null ? '₹' + (Number(n) / 100000).toFixed(2) + ' L' : '--'; }
+    
+    function scoreBadge(score) {
+        if (score == null) return '<span class="panel-badge badge-blue">--</span>';
+        const c = score >= 75 ? 'green' : score >= 50 ? 'amber' : 'red';
+        return `<span class="panel-badge badge-${c}">${fmt(score, 0)}</span>`;
+    }
+    
+    function resultBadge(result) {
+        if (!result) return '';
+        const map = { 'COMPLIANT': 'green', 'PASS': 'green', 'WARNING': 'amber', 'VIOLATION': 'red', 'FAIL': 'red' };
+        return `<span class="panel-badge badge-${map[result] || 'blue'}">${result}</span>`;
+    }
+
+    function recBadge(rec) {
+        if (!rec) return '';
+        const map = { 'STRONG_BUY': 'green', 'BUY': 'green', 'HOLD': 'amber', 'SELL': 'red', 'AVOID': 'red' };
+        return `<span class="panel-badge badge-${map[rec] || 'blue'}">${rec}</span>`;
+    }
+    
+    // ─── DASHBOARD LOAD ─────────────────────────────────────────
+    async function refreshAll() {
+        const data = await api('/dashboard');
+        if (!data) {
+            document.getElementById('statusDot').style.background = 'var(--red)';
+            document.getElementById('statusText').textContent = 'Disconnected';
+            return;
+        }
+        
+        document.getElementById('statusDot').style.background = 'var(--green)';
+        document.getElementById('statusText').textContent = 'Connected';
+        document.getElementById('lastUpdate').textContent = 'Last updated: ' + new Date(data.last_updated).toLocaleString();
+        
+        // Stats
+        document.getElementById('statBonds').textContent = data.bond_universe?.total_bonds || 0;
+        document.getElementById('statArb').textContent = data.arbitrage_opportunities?.length || 0;
+        document.getElementById('statPort').textContent = data.portfolios?.length || 0;
+        
+        // Top bonds
+        const tbody = document.getElementById('topBondsBody');
+        if (data.top_bonds?.length) {
+            tbody.innerHTML = data.top_bonds.slice(0, 10).map((b, i) => `
+                <tr class="bd-clickable-row" onclick="openInvestAnalysis('${b.isin}')" title="Click for full Investment Analysis">
+                    <td>${i + 1}</td>
+                    <td>${b.issuer_name || b.isin}</td>
+                    <td><span class="panel-badge badge-blue">${b.credit_rating || '--'}</span></td>
+                    <td>${b.issuer_type || '--'}</td>
+                    <td>${scoreBadge(b.iss_score)}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="why-btn" onclick="event.stopPropagation();showWhy('${b.isin}')">Why?</button>
+                        <button class="why-btn" style="background:var(--accent);" onclick="event.stopPropagation();openInvestAnalysis('${b.isin}')">🔬 Analyze</button>
+                        <button class="why-btn" style="background:#7c3aed;" onclick="event.stopPropagation();addToSandbox('${b.isin}')">🧪</button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">No scores yet — run pipeline</td></tr>';
+        }
+        
+        // Arbitrage
+        const arbTbody = document.getElementById('arbBody');
+        if (data.arbitrage_opportunities?.length) {
+            arbTbody.innerHTML = data.arbitrage_opportunities.slice(0, 8).map(a => `
+                <tr>
+                    <td style="font-size:11px;">${a.isin}</td>
+                    <td><span class="panel-badge badge-amber">${a.arb_type}</span></td>
+                    <td class="num" style="color:var(--green);font-weight:600">${fmt(a.spread_bps)}</td>
+                    <td><span class="panel-badge badge-green">${a.status || 'ACTIVE'}</span></td>
+                </tr>
+            `).join('');
+        } else {
+            arbTbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">No arbitrage detected</td></tr>';
+        }
+        
+        // Compliance
+        const compTbody = document.getElementById('complianceBody');
+        if (data.recent_compliance?.length) {
+            compTbody.innerHTML = data.recent_compliance.slice(0, 8).map(c => `
+                <tr>
+                    <td>${c.portfolio_id || '--'}</td>
+                    <td style="font-size:11px;">${c.isin || 'Portfolio'}</td>
+                    <td>${resultBadge(c.result)}</td>
+                    <td style="font-size:11px;">${new Date(c.check_timestamp).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        } else {
+            compTbody.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">No compliance checks</td></tr>';
+        }
+        
+        // Credit chart (simple bar chart)
+        buildCreditChart(data.top_bonds || []);
+    }
+    
+    function buildCreditChart(bonds) {
+        const ratingCounts = {};
+        bonds.forEach(b => {
+            const r = b.credit_rating || 'UNRATED';
+            ratingCounts[r] = (ratingCounts[r] || 0) + 1;
+        });
+        const max = Math.max(...Object.values(ratingCounts), 1);
+        const container = document.getElementById('creditChart');
+        const colors = { SOVEREIGN: '#4f8cff', AAA: '#22c55e', 'AA+': '#10b981', AA: '#f59e0b', 'A+': '#f97316', A: '#ef4444' };
+        container.innerHTML = Object.entries(ratingCounts).map(([r, c]) => `
+            <div style="flex:1;text-align:center;">
+                <div style="background:${colors[r] || '#64748b'};height:${(c / max) * 160}px;border-radius:4px 4px 0 0;margin:0 4px;"></div>
+                <div style="font-size:11px;margin-top:4px;color:var(--muted);">${r}</div>
+                <div style="font-size:13px;font-weight:600;">${c}</div>
+            </div>
+        `).join('');
+    }
+    
+    // ─── TOP 20 ──────────────────────────────────────────────────
+    async function loadTop20() {
+        const data = await api('/scores/top20');
+        const tbody = document.getElementById('top20Body');
+        if (data?.bonds?.length) {
+            tbody.innerHTML = data.bonds.map((b, i) => `
+                <tr class="bd-clickable-row" onclick="openBondDetail('${b.isin}')">
+                    <td style="font-weight:700;color:var(--accent);">${i + 1}</td>
+                    <td style="font-size:11px;">${b.isin}</td>
+                    <td>${b.issuer_name || '--'}</td>
+                    <td>${b.issuer_type || '--'}</td>
+                    <td><span class="panel-badge badge-blue">${b.credit_rating || '--'}</span></td>
+                    <td class="num">${fmt(b.coupon_rate)}%</td>
+                    <td class="num">${fmt(b.ytm)}%</td>
+                    <td class="num">${fmt(b.modified_duration)}</td>
+                    <td class="num">${scoreBadge(b.iss_score)}</td>
+                    <td>${recBadge(b.recommendation)}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="why-btn" onclick="event.stopPropagation();showWhy('${b.isin}')">Why?</button>
+                        <button class="why-btn" style="background:var(--accent);" onclick="event.stopPropagation();openInvestAnalysis('${b.isin}')">🔬 Analyze</button>
+                        <button class="why-btn" style="background:#7c3aed;" onclick="event.stopPropagation();addToSandbox('${b.isin}')">🧪</button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="11" style="color:var(--muted)">No scores — run pipeline first</td></tr>';
+        }
+    }
+    
+    // ─── ARBITRAGE ──────────────────────────────────────────────
+    async function loadArbitrage() {
+        const data = await api('/arbitrage?limit=100');
+        allArbitrage = data?.opportunities || [];
+        renderArbitrage(allArbitrage);
+    }
+    
+    function renderArbitrage(items) {
+        const tbody = document.getElementById('arbFullBody');
+        if (items.length) {
+            tbody.innerHTML = items.map(a => `
+                <tr>
+                    <td style="font-size:11px;">${a.isin}</td>
+                    <td><span class="panel-badge badge-amber">${a.arb_type}</span></td>
+                    <td class="num" style="color:var(--green);font-weight:600;">${fmt(a.spread_bps)}</td>
+                    <td>${a.buy_broker || '--'}</td>
+                    <td>${a.sell_broker || '--'}</td>
+                    <td>${resultBadge(a.status || 'ACTIVE')}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">No arbitrage opportunities found</td></tr>';
+        }
+    }
+    
+    function filterArbitrage() {
+        const search = document.getElementById('arbSearch').value.toUpperCase();
+        const type = document.getElementById('arbTypeFilter').value;
+        let filtered = allArbitrage;
+        if (search) filtered = filtered.filter(a => a.isin?.toUpperCase().includes(search));
+        if (type) filtered = filtered.filter(a => a.arb_type === type);
+        renderArbitrage(filtered);
+    }
+    
+    // ─── PORTFOLIO ──────────────────────────────────────────────
+    async function loadPortfolios() {
+        const data = await api('/portfolios');
+        const div = document.getElementById('portfolioList');
+        if (data?.portfolios?.length) {
+            div.innerHTML = data.portfolios.map(p => `
+                <div style="padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;cursor:pointer;" onclick="loadPortfolioDetail('${p.portfolio_id}')">
+                    <div style="font-weight:600;">${p.portfolio_name || p.portfolio_id}</div>
+                    <div style="font-size:11px;color:var(--muted);">AUM: ${fmtCr(p.total_aum)} | Duration Target: ${p.target_duration || '--'}Y</div>
+                </div>
+            `).join('');
+        } else {
+            div.innerHTML = '<p style="color:var(--muted);font-size:12px;">No portfolios created yet</p>';
+        }
+    }
+    
+    async function loadPortfolioDetail(pid) {
+        const summary = await api(`/portfolios/${pid}/summary`);
+        const div = document.getElementById('portfolioSummary');
+        if (summary) {
+            div.innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+                    <div><span style="color:var(--muted);">Portfolio YTM:</span> <b>${fmt(summary.portfolio_ytm)}%</b></div>
+                    <div><span style="color:var(--muted);">Duration:</span> <b>${fmt(summary.portfolio_duration)}Y</b></div>
+                    <div><span style="color:var(--muted);">Total AUM:</span> <b>${fmtCr(summary.total_market_value)}</b></div>
+                    <div><span style="color:var(--muted);">Holdings:</span> <b>${summary.total_holdings || 0}</b></div>
+                </div>
+            `;
+        }
+        
+        const holdings = await api(`/portfolios/${pid}/holdings`);
+        const tbody = document.getElementById('holdingsBody');
+        if (holdings?.holdings?.length) {
+            tbody.innerHTML = holdings.holdings.map(h => `
+                <tr class="bd-clickable-row" onclick="openInvestAnalysis('${h.isin}')" title="Click to view Investment Analysis for ${h.isin}">
+                    <td style="font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;">${h.isin}</td>
+                    <td>${h.issuer_name || '--'}</td>
+                    <td><span class="panel-badge badge-blue">${h.credit_rating || '--'}</span></td>
+                    <td class="num">${fmtCr(h.face_value_held)}</td>
+                    <td class="num">${fmtCr(h.market_value)}</td>
+                    <td class="num">${fmt(h.weight_pct)}%</td>
+                    <td><button class="why-btn" onclick="event.stopPropagation();openInvestAnalysis('${h.isin}')">🔬 Analyze</button></td>
+                </tr>
+            `).join('');
+        }
+    }
+    
+    // ─── COMPLIANCE ─────────────────────────────────────────────
+    async function loadCompliance() {
+        const data = await api('/compliance/audit-trail?limit=50');
+        const rows = data?.audit_trail || [];
+        
+        let passed = 0, violations = 0, warnings = 0;
+        rows.forEach(r => {
+            if (r.result === 'COMPLIANT' || r.result === 'PASS') passed++;
+            else if (r.result === 'VIOLATION' || r.result === 'FAIL') violations++;
+            else if (r.result === 'WARNING') warnings++;
+        });
+        
+        document.getElementById('compTotal').textContent = rows.length;
+        document.getElementById('compPassed').textContent = passed;
+        document.getElementById('compViolations').textContent = violations;
+        document.getElementById('compWarnings').textContent = warnings;
+        
+        const tbody = document.getElementById('compFullBody');
+        if (rows.length) {
+            tbody.innerHTML = rows.map(c => `
+                <tr>
+                    <td style="font-size:11px;">${new Date(c.check_timestamp).toLocaleString()}</td>
+                    <td>${c.portfolio_id || '--'}</td>
+                    <td style="font-size:11px;">${c.isin || '--'}</td>
+                    <td>${c.check_type || '--'}</td>
+                    <td>${resultBadge(c.result)}</td>
+                    <td class="num">${fmt(c.compliance_score, 0)}</td>
+                    <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${c.details || '--'}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted)">No compliance checks recorded</td></tr>';
+        }
+    }
+    
+    // ─── OPTIMIZER ──────────────────────────────────────────────
+    async function runOptimizer() {
+        const body = {
+            portfolio_id: document.getElementById('optPortfolio').value,
+            cash_available: Number(document.getElementById('optCash').value),
+            target_duration: Number(document.getElementById('optDuration').value),
+            risk_tolerance: document.getElementById('optRisk').value,
+            optimization_method: document.getElementById('optMethod').value,
+            max_bonds: 30,
+            min_allocation_cr: 1.0
+        };
+        
+        document.getElementById('optResults').innerHTML = '<div class="loading"><div class="spinner"></div><p>Optimizing...</p></div>';
+        
+        const data = await api('/optimize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        
+        if (data && !data.detail) {
+            document.getElementById('optResults').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+                    <div><span style="color:var(--muted);">Expected YTM:</span> <b style="color:var(--green)">${fmt(data.expected_ytm)}%</b></div>
+                    <div><span style="color:var(--muted);">Expected Duration:</span> <b>${fmt(data.expected_duration)}Y</b></div>
+                    <div><span style="color:var(--muted);">Total Investment:</span> <b>${fmtCr(data.total_investment)}</b></div>
+                    <div><span style="color:var(--muted);">Bonds Selected:</span> <b>${data.optimal_bond_mix?.length || 0}</b></div>
+                    <div><span style="color:var(--muted);">Compliance:</span> ${resultBadge(data.compliance_status)}</div>
+                    <div><span style="color:var(--muted);">Method:</span> <b>${data.optimization_method || '--'}</b></div>
+                </div>
+                <div style="margin-top:12px;">
+                    <div class="panel-title" style="font-size:12px;"><span class="icon">⚡</span> Stress Tests</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;">
+                        <div>+100bps Rate: <b style="color:var(--red)">${fmtCr(data.stress_100bps_up)}</b></div>
+                        <div>-100bps Rate: <b style="color:var(--green)">${fmtCr(data.stress_100bps_down)}</b></div>
+                        <div>Credit Spread: <b style="color:var(--red)">${fmtCr(data.stress_credit_spread)}</b></div>
+                    </div>
+                </div>
+            `;
+            
+            // Show mix
+            if (data.optimal_bond_mix?.length) {
+                document.getElementById('optMixPanel').style.display = 'block';
+                document.getElementById('optMixBody').innerHTML = data.optimal_bond_mix.map(b => `
+                    <tr>
+                        <td style="font-size:11px;">${b.isin}</td>
+                        <td>${b.issuer_name || '--'}</td>
+                        <td><span class="panel-badge badge-blue">${b.credit_rating || '--'}</span></td>
+                        <td class="num">${fmt(b.ytm)}%</td>
+                        <td class="num">${fmt(b.modified_duration)}</td>
+                        <td class="num">${fmtCr(b.allocation_amount)}</td>
+                        <td class="num">${fmt(b.weight_pct)}%</td>
+                        <td style="font-size:11px;">${b.rationale || '--'}</td>
+                    </tr>
+                `).join('');
+            }
+        } else {
+            document.getElementById('optResults').innerHTML = `<p style="color:var(--red);">${data?.detail || 'Optimization failed'}</p>`;
+        }
+    }
+    
+    // ─── BOND UNIVERSE ──────────────────────────────────────────
+    async function searchBonds() {
+        const search = document.getElementById('universeSearch').value;
+        const type = document.getElementById('universeType').value;
+        const rating = document.getElementById('universeRating').value;
+        
+        let url = '/bonds?limit=200';
+        if (search) url += '&search=' + encodeURIComponent(search);
+        if (type) url += '&issuer_type=' + type;
+        if (rating) url += '&credit_rating=' + rating;
+        
+        const data = await api(url);
+        const tbody = document.getElementById('universeBody');
+        if (data?.bonds?.length) {
+            tbody.innerHTML = data.bonds.map(b => `
+                <tr class="bd-clickable-row" onclick="openBondDetail('${b.isin}')">
+                    <td style="font-size:11px;">${b.isin}</td>
+                    <td>${b.bond_name || '--'}</td>
+                    <td>${b.issuer_name || '--'}</td>
+                    <td>${b.issuer_type || '--'}</td>
+                    <td><span class="panel-badge badge-blue">${b.credit_rating || '--'}</span></td>
+                    <td class="num">${fmt(b.coupon_rate)}%</td>
+                    <td>${b.maturity_date || '--'}</td>
+                    <td>${b.is_pf_eligible ? '✅' : '❌'}</td>
+                    <td><button class="why-btn" style="background:var(--accent);" onclick="event.stopPropagation();openInvestAnalysis('${b.isin}')">🔬 Analyze</button></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted)">No bonds found</td></tr>';
+        }
+    }
+    
+    // ─── WHY THIS BOND ──────────────────────────────────────────
+    async function showWhy(isin) {
+        const data = await api(`/scores/${isin}/explain`);
+        if (data) {
+            const msg = `
+ISS Score: ${fmt(data.iss_score, 0)} — ${data.recommendation || '--'}
+
+${data.explanation || 'No explanation available'}
+
+Sub-scores:
+${data.sub_scores ? Object.entries(data.sub_scores).map(([k, v]) => `  ${k}: ${fmt(v, 0)}`).join('\n') : 'N/A'}
+            `.trim();
+            alert(msg);
+        }
+    }
+    
+    // ─── PIPELINE ───────────────────────────────────────────────
+    async function runPipeline() {
+        if (!confirm('Run full daily pipeline? (Score → Compliance → Arbitrage)')) return;
+        const data = await api('/pipeline/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify('default')
+        });
+        if (data) {
+            alert('Pipeline completed!\n\n' + JSON.stringify(data.results, null, 2));
+            refreshAll();
+        }
+    }
+    
+    // ─── BOND DETAIL ─────────────────────────────────────────────
+    let _currentBondISIN = null;
+
+    function openBondDetail(isin) {
+        _currentBondISIN = isin;
+        // Show and activate the detail tab
+        const tab = document.getElementById('bondDetailTab');
+        tab.style.display = 'block';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        document.getElementById('tab-bonddetail').classList.add('active');
+        // Scroll to top
+        window.scrollTo(0, 0);
+        loadBondDetail(isin);
+    }
+
+    function closeBondDetail() {
+        document.getElementById('bondDetailTab').style.display = 'none';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        document.querySelector('.tab[onclick="switchTab(\'overview\')"]').classList.add('active');
+        document.getElementById('tab-overview').classList.add('active');
+        _currentBondISIN = null;
+    }
+
+    async function loadBondDetail(isin) {
+        // Reset
+        document.getElementById('bdTitle').textContent = 'Loading bond detail...';
+        document.getElementById('bdISIN').textContent = isin;
+        document.getElementById('bdTags').innerHTML = '';
+        document.getElementById('bdISSScore').innerHTML = '<div class="spinner"></div>';
+        
+        const d = await api(`/bond-detail/${isin}`);
+        if (!d) {
+            document.getElementById('bdTitle').textContent = 'Error loading bond detail';
+            return;
+        }
+
+        // ─ Section 1: Overview ──────────────────────
+        const bm = d.bond_overview || {};
+        document.getElementById('bdTitle').textContent = bm.issuer_name || bm.bond_name || isin;
+        document.getElementById('bdISIN').textContent = `ISIN: ${isin} · ${bm.bond_name || ''}`;
+        document.getElementById('bdTags').innerHTML = [
+            bm.issuer_type ? `<span class="panel-badge badge-blue">${bm.issuer_type}</span>` : '',
+            bm.credit_rating ? `<span class="panel-badge badge-green">${bm.credit_rating}</span>` : '',
+            bm.is_pf_eligible ? '<span class="panel-badge badge-green">PF Eligible</span>' : '<span class="panel-badge badge-red">Not PF Eligible</span>',
+            bm.instrument_type ? `<span class="panel-badge badge-amber">${bm.instrument_type}</span>` : ''
+        ].join('');
+        
+        const issScore = d.iss_score?.iss_score;
+        document.getElementById('bdISSScore').innerHTML = `
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">ISS Score</div>
+            <div style="font-size:40px;font-weight:800;color:${issScore >= 75 ? 'var(--green)' : issScore >= 50 ? 'var(--amber)' : issScore != null ? 'var(--red)' : 'var(--muted)'}">${issScore != null ? fmt(issScore, 0) : '--'}</div>
+            <div style="font-size:12px;">${issScore != null ? recBadge(d.iss_score?.recommendation) : ''}</div>
+        `;
+
+        document.getElementById('bdOverviewKV').innerHTML = kv([
+            ['Coupon Rate', `${fmt(bm.coupon_rate)}%`, bm.coupon_rate > 7 ? 'green' : ''],
+            ['Coupon Freq', bm.coupon_frequency || '--'],
+            ['Face Value', `₹${fmt(bm.face_value, 0)}`, ''],
+            ['Maturity Date', bm.maturity_date || '--'],
+            ['Issue Date', bm.issue_date || '--'],
+            ['Issue Size', bm.issue_size_cr ? `₹${fmt(bm.issue_size_cr, 0)} Cr` : '--'],
+            ['Issuer Type', bm.issuer_type || '--'],
+            ['Sector', bm.sector || '--']
+        ]);
+
+        document.getElementById('bdOverviewExtra').innerHTML = bm.guarantor_name || bm.security_type ? `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px;">
+                ${bm.security_type ? kv1('Security Type', bm.security_type) : ''}
+                ${bm.guarantor_name ? kv1('Guarantor', bm.guarantor_name) : ''}
+                ${bm.listing_status ? kv1('Listing', bm.listing_status) : ''}
+            </div>` : '';
+
+        // ─ Section 2: Market Data ──────────────────────
+        const mkt = d.market_data || {};
+        document.getElementById('bdMarketKV').innerHTML = kv([
+            ['Current YTM', mkt.ytm_current ? `${fmt(mkt.ytm_current)}%` : '--', mkt.ytm_current > 7.5 ? 'green' : ''],
+            ['Clean Price', mkt.price_clean ? `₹${fmt(mkt.price_clean)}` : '--'],
+            ['Modified Duration', mkt.modified_duration ? `${fmt(mkt.modified_duration)}Y` : '--'],
+            ['DV01', mkt.dv01 ? `₹${fmt(mkt.dv01, 2)}` : '--'],
+            ['Z-Spread', mkt.z_spread_bps ? `${fmt(mkt.z_spread_bps, 0)} bps` : '--'],
+            ['G-Spread', mkt.g_spread_bps ? `${fmt(mkt.g_spread_bps, 0)} bps` : '--'],
+            ['Accrued Interest', mkt.accrued_interest ? `₹${fmt(mkt.accrued_interest)}` : '--'],
+            ['Convexity', mkt.convexity ? fmt(mkt.convexity) : '--']
+        ]);
+
+        document.getElementById('bdLiquidityBody').innerHTML = `
+            <div style="display:grid;gap:6px;font-size:12px;">
+                ${mkt.liquidity_score != null ? `<div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--muted);">Liquidity Score</span><span style="font-weight:700;color:${mkt.liquidity_score >= 60 ? 'var(--green)' : mkt.liquidity_score >= 30 ? 'var(--amber)' : 'var(--red)'}">${fmt(mkt.liquidity_score, 0)}/100</span></div>` : ''}
+                ${mkt.avg_daily_volume_cr ? `<div><span style="color:var(--muted);">Avg Daily Vol:</span> <b>₹${fmt(mkt.avg_daily_volume_cr)} Cr</b></div>` : ''}
+                ${mkt.bid_ask_spread_bps ? `<div><span style="color:var(--muted);">Bid-Ask Spread:</span> <b>${fmt(mkt.bid_ask_spread_bps, 1)} bps</b></div>` : ''}
+                ${mkt.days_since_last_trade ? `<div><span style="color:var(--muted);">Days Since Trade:</span> <b>${mkt.days_since_last_trade}</b></div>` : ''}
+            </div>
+        `;
+
+        const brokerQuotes = d.broker_quotes || [];
+        document.getElementById('bdBrokerBody').innerHTML = brokerQuotes.length ? brokerQuotes.slice(0, 5).map(q => `
+            <tr>
+                <td>${q.broker_name || q.broker_id || '--'}</td>
+                <td class="num">${fmt(q.bid_ytm)}%</td>
+                <td class="num">${fmt(q.ask_ytm)}%</td>
+                <td class="num" style="color:var(--amber);">${q.bid_ytm && q.ask_ytm ? fmt((q.ask_ytm - q.bid_ytm) * 100, 0) : '--'}</td>
+            </tr>`) .join('') : '<tr><td colspan="4" style="color:var(--muted);">No broker quotes available</td></tr>';
+
+        // ─ Section 3: IM Intelligence ──────────────────────
+        const im = d.im_intelligence || {};
+        if (im.prospectus_date || im.use_of_proceeds || im.rating_agency) {
+            document.getElementById('bdIMNoData').style.display = 'none';
+            document.getElementById('bdIMContent').style.display = 'block';
+            document.getElementById('bdIMKV').innerHTML = kv([
+                ['Proceeds Use', im.use_of_proceeds || '--'],
+                ['Rating Agency', im.rating_agency || '--'],
+                ['Rating Rationale', (im.rating_rationale || '').substring(0, 50) + (im.rating_rationale?.length > 50 ? '...' : '')],
+                ['Prospectus Date', im.prospectus_date || '--'],
+                ['Repayment Type', im.repayment_schedule_type || '--'],
+                ['DSCR Floor', im.dscr_floor ? fmt(im.dscr_floor) : '--'],
+                ['Debt/EBITDA Cap', im.debt_ebitda_cap ? fmt(im.debt_ebitda_cap) : '--'],
+                ['Security Cover', im.security_cover_ratio ? `${fmt(im.security_cover_ratio)}x` : '--']
+            ]);
+
+            const flags = im.risk_flags || [];
+            document.getElementById('bdRiskFlags').innerHTML = flags.length ? flags.map(f => `
+                <div class="bd-risk-flag ${(f.severity || '').toLowerCase()}">
+                    <span>${f.severity === 'HIGH' ? '🔴' : f.severity === 'MEDIUM' ? '🟡' : '🟢'}</span>
+                    <div>
+                        <div style="font-weight:600;">${f.flag_type?.replace(/_/g, ' ') || f.flag_type}</div>
+                        <div style="font-size:11px;color:var(--muted);">${f.description || ''}</div>
+                    </div>
+                </div>`) .join('') : '<div style="color:var(--green);font-size:12px;">✅ No risk flags identified</div>';
+
+            const covenants = im.covenant_vs_actual || [];
+            document.getElementById('bdCovenantBody').innerHTML = covenants.length ? covenants.map(c => {
+                const pass = c.is_breached === false;
+                return `<tr>
+                    <td>${c.covenant_name || '--'}</td>
+                    <td class="num">${c.threshold_value != null ? fmt(c.threshold_value) : '--'}</td>
+                    <td class="num">${c.actual_value != null ? fmt(c.actual_value) : '--'}</td>
+                    <td>${c.is_breached ? '<span class="panel-badge badge-red">BREACH</span>' : '<span class="panel-badge badge-green">OK</span>'}</td>
+                </tr>`;}) .join('') : '<tr><td colspan="4" style="color:var(--muted);">No covenant data</td></tr>';
+        } else {
+            document.getElementById('bdIMNoData').style.display = 'block';
+            document.getElementById('bdIMContent').style.display = 'none';
+        }
+
+        // ─ Section 4: Financial Analysis ──────────────────────
+        const fin = d.financial_analysis || {};
+        const finList = fin.financials || [];
+        if (finList.length) {
+            document.getElementById('bdFinNoData').style.display = 'none';
+            document.getElementById('bdFinContent').style.display = 'block';
+            const latest = finList[0] || {};
+            document.getElementById('bdFinKV').innerHTML = kv([
+                ['Revenue', latest.revenue_cr ? `₹${fmt(latest.revenue_cr, 0)} Cr` : '--'],
+                ['EBITDA', latest.ebitda_cr ? `₹${fmt(latest.ebitda_cr, 0)} Cr` : '--'],
+                ['PAT', latest.pat_cr ? `₹${fmt(latest.pat_cr, 0)} Cr` : '--', latest.pat_cr > 0 ? 'green' : 'red'],
+                ['FY', latest.fiscal_year || '--'],
+                ['Debt/EBITDA', latest.debt_ebitda ? fmt(latest.debt_ebitda) : '--', latest.debt_ebitda > 5 ? 'red' : latest.debt_ebitda > 3 ? 'amber' : 'green'],
+                ['Net D/EBITDA', latest.net_debt_ebitda ? fmt(latest.net_debt_ebitda) : '--'],
+                ['ICR', latest.interest_coverage ? fmt(latest.interest_coverage) : '--', latest.interest_coverage < 2 ? 'red' : latest.interest_coverage < 3 ? 'amber' : 'green'],
+                ['DSCR', latest.dscr ? fmt(latest.dscr) : '--', latest.dscr < 1 ? 'red' : latest.dscr < 1.25 ? 'amber' : 'green']
+            ]);
+
+            const ratios = [
+                ['Debt/Equity', latest.debt_equity, v => v > 3 ? 'red' : v > 2 ? 'amber' : 'green'],
+                ['Current Ratio', latest.current_ratio, v => v < 1 ? 'red' : v < 1.5 ? 'amber' : 'green'],
+                ['ROE %', latest.roe, v => v < 5 ? 'red' : v < 10 ? 'amber' : 'green'],
+                ['ROCE %', latest.roce, v => v < 5 ? 'red' : v < 10 ? 'amber' : 'green'],
+                ['EBITDA Margin %', latest.ebitda_margin, v => v < 10 ? 'red' : v < 20 ? 'amber' : 'green'],
+                ['FCF (₹ Cr)', latest.free_cashflow_cr, v => v < 0 ? 'red' : 'green'],
+            ];
+            document.getElementById('bdRatiosBody').innerHTML = ratios.map(([name, val, fn]) => {
+                if (val == null) return '';
+                const c = fn(val);
+                return `<tr><td>${name}</td><td class="num" style="color:var(--${c})">${fmt(val)}</td><td>${c === 'green' ? '🟢' : c === 'amber' ? '🟡' : '🔴'}</td></tr>`;
+            }).join('');
+
+            const trends = fin.trends || {};
+            document.getElementById('bdTrendsBody').innerHTML = Object.entries(trends).map(([k, v]) => {
+                const icon = v === 'IMPROVING' ? '📈' : v === 'DETERIORATING' ? '📉' : '➡️';
+                const color = v === 'IMPROVING' ? 'var(--green)' : v === 'DETERIORATING' ? 'var(--red)' : 'var(--muted)';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(45,51,72,0.3);">
+                    <span>${icon}</span>
+                    <span style="flex:1;color:var(--text);">${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span style="color:${color};font-weight:600;">${v}</span>
+                </div>`;
+            }).join('') || '<div style="color:var(--muted);">No trend data</div>';
+        } else {
+            document.getElementById('bdFinNoData').style.display = 'block';
+            document.getElementById('bdFinContent').style.display = 'none';
+        }
+
+        // ─ Section 5: News & Events ──────────────────────
+        const news = d.news_intelligence || {};
+        const sentScore = news.sentiment_score;
+        document.getElementById('bdNewsKV').innerHTML = kv([
+            ['Sentiment Score', sentScore != null ? fmt(sentScore, 0) : '--', sentScore > 20 ? 'green' : sentScore < -20 ? 'red' : ''],
+            ['Sentiment', news.overall_sentiment || '--', news.overall_sentiment === 'POSITIVE' ? 'green' : news.overall_sentiment === 'NEGATIVE' ? 'red' : ''],
+            ['News Items', news.news_items?.length ?? '--'],
+            ['Event Risks', news.event_risks?.length ?? '--', news.event_risks?.length > 0 ? 'amber' : 'green']
+        ]);
+
+        const eventRisks = news.event_risks || [];
+        document.getElementById('bdEventRisks').innerHTML = eventRisks.length ? eventRisks.map(e => `
+            <div class="bd-risk-flag ${(e.severity || '').toLowerCase() === 'critical' ? 'high' : (e.severity || '').toLowerCase() === 'high' ? 'high' : 'medium'}">
+                <span>${e.severity === 'CRITICAL' ? '🔴' : e.severity === 'HIGH' ? '🟠' : '🟡'}</span>
+                <div>
+                    <div style="font-weight:600;">${(e.event_type || '').replace(/_/g, ' ')}</div>
+                    <div style="font-size:11px;color:var(--muted);">${e.description || ''}</div>
+                </div>
+            </div>`) .join('') : '<div style="color:var(--green);font-size:12px;padding:8px;">✅ No active event risks</div>';
+
+        const newsItems = news.news_items || [];
+        document.getElementById('bdNewsList').innerHTML = newsItems.length ? newsItems.slice(0, 8).map(n => `
+            <div class="bd-news-item ${n.sentiment?.toLowerCase() || 'neutral'}">
+                <div style="font-size:12px;font-weight:600;">${n.headline || n.title || '--'}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">${n.source || ''} · ${n.news_date ? new Date(n.news_date).toLocaleDateString() : ''} · 
+                    <span style="color:${n.sentiment === 'POSITIVE' ? 'var(--green)' : n.sentiment === 'NEGATIVE' ? 'var(--red)' : 'var(--muted)'};">${n.sentiment || 'NEUTRAL'}</span>
+                </div>
+            </div>`) .join('') : '<div style="color:var(--muted);font-size:12px;padding:8px;">No news items</div>';
+
+        // ─ Section 6: Portfolio Impact ──────────────────────
+        const portImpact = d.portfolio_impact || {};
+        const portHoldings = portImpact.held_in_portfolios || [];
+        document.getElementById('bdPortKV').innerHTML = kv([
+            ['Held in Portfolios', portHoldings.length || 0, portHoldings.length > 0 ? 'blue' : ''],
+            ['Total Face Value', portImpact.total_face_value_cr ? `₹${fmt(portImpact.total_face_value_cr, 2)} Cr` : '--'],
+            ['Total Market Value', portImpact.total_market_value_cr ? `₹${fmt(portImpact.total_market_value_cr, 2)} Cr` : '--'],
+            ['Avg Weight', portImpact.avg_portfolio_weight ? `${fmt(portImpact.avg_portfolio_weight, 1)}%` : '--']
+        ]);
+        document.getElementById('bdPortHoldingsBody').innerHTML = portHoldings.length ? portHoldings.map(h => `
+            <tr>
+                <td>${h.portfolio_id}</td>
+                <td class="num">${h.face_value_cr ? `₹${fmt(h.face_value_cr, 2)} Cr` : '--'}</td>
+                <td class="num">${h.market_value_cr ? `₹${fmt(h.market_value_cr, 2)} Cr` : '--'}</td>
+                <td class="num">${h.weight_pct ? `${fmt(h.weight_pct, 2)}%` : '--'}</td>
+                <td class="num">${h.ytm ? `${fmt(h.ytm)}%` : '--'}</td>
+            </tr>`) .join('') : '<tr><td colspan="5" style="color:var(--muted);">Not held in any portfolio</td></tr>';
+
+        // ─ Section 7: Quant Analytics ──────────────────────
+        const quant = d.quant_analytics || {};
+        document.getElementById('bdQuantKV').innerHTML = kv([
+            ['Macaulay Duration', mkt.macaulay_duration ? `${fmt(mkt.macaulay_duration)}Y` : '--'],
+            ['Modified Duration', mkt.modified_duration ? `${fmt(mkt.modified_duration)}Y` : '--'],
+            ['Convexity', mkt.convexity ? fmt(mkt.convexity) : '--'],
+            ['DV01', mkt.dv01 ? `₹${fmt(mkt.dv01, 2)}` : '--']
+        ]);
+
+        const scenarios = quant.scenarios || {};
+        document.getElementById('bdScenarios').innerHTML = Object.entries(scenarios).map(([label, sc]) => `
+            <div class="bd-scenario-card">
+                <div class="bd-scenario-label">${label.replace(/_/g, ' ')}</div>
+                <div class="bd-scenario-value" style="color:${sc.price_change_pct < 0 ? 'var(--red)' : 'var(--green)'};">${sc.price_change_pct != null ? fmt(sc.price_change_pct, 2) + '%' : '--'}</div>
+                <div style="font-size:11px;color:var(--muted);">P&L: ${sc.pnl_cr != null ? `₹${fmt(sc.pnl_cr, 2)} Cr` : '--'}</div>
+            </div>`) .join('') || '<div style="color:var(--muted);font-size:12px;">No scenario data</div>';
+
+        const pd = quant.default_probability || {};
+        document.getElementById('bdDefaultAnalysis').innerHTML = `
+            <div style="display:grid;gap:6px;">
+                ${pd.pd_1y != null ? `<div><span style="color:var(--muted);">PD (1Y):</span> <b style="color:${pd.pd_1y > 0.05 ? 'var(--red)' : 'var(--green)'}">${(pd.pd_1y * 100).toFixed(2)}%</b></div>` : ''}
+                ${pd.pd_3y != null ? `<div><span style="color:var(--muted);">PD (3Y):</span> <b>${(pd.pd_3y * 100).toFixed(2)}%</b></div>` : ''}
+                ${pd.lgd != null ? `<div><span style="color:var(--muted);">LGD:</span> <b>${(pd.lgd * 100).toFixed(0)}%</b></div>` : ''}
+                ${pd.ead_cr != null ? `<div><span style="color:var(--muted);">EAD:</span> <b>₹${fmt(pd.ead_cr, 2)} Cr</b></div>` : ''}
+                ${pd.el_cr != null ? `<div><span style="color:var(--muted);">Expected Loss:</span> <b style="color:var(--red);">₹${fmt(pd.el_cr, 2)} Cr</b></div>` : ''}
+                ${!pd.pd_1y ? '<div style="color:var(--muted);">Complete risk scoring to see PD analysis</div>' : ''}
+            </div>`;
+
+        const rec = quant.recovery || {};
+        document.getElementById('bdRecoveryAnalysis').innerHTML = `
+            <div style="display:grid;gap:6px;">
+                ${rec.recovery_rate != null ? `<div><span style="color:var(--muted);">Recovery Rate:</span> <b>${(rec.recovery_rate * 100).toFixed(0)}%</b></div>` : ''}
+                ${rec.recovery_value_cr != null ? `<div><span style="color:var(--muted);">Recovery Value:</span> <b style="color:var(--green);">₹${fmt(rec.recovery_value_cr, 2)} Cr</b></div>` : ''}
+                ${rec.security_type != null ? `<div><span style="color:var(--muted);">Security Type:</span> <b>${rec.security_type}</b></div>` : ''}
+                ${!rec.recovery_rate ? '<div style="color:var(--muted);">Recovery analysis requires scenario run</div>' : ''}
+            </div>`;
+
+        // ─ Section 8: Compliance ──────────────────────
+        const comp = d.compliance_validation || {};
+        const compChecks = comp.checks || [];
+        const compPassed = compChecks.filter(c => c.result === 'COMPLIANT' || c.result === 'PASS').length;
+        document.getElementById('bdCompKV').innerHTML = kv([
+            ['Overall Status', comp.overall_status || '--', comp.overall_status === 'COMPLIANT' ? 'green' : comp.overall_status === 'WARNING' ? 'amber' : 'red'],
+            ['Rules Checked', compChecks.length || '--'],
+            ['Passed', compPassed || 0, 'green'],
+            ['PF Eligible', bm.is_pf_eligible ? 'Yes' : 'No', bm.is_pf_eligible ? 'green' : 'red']
+        ]);
+        
+        document.getElementById('bdCompRules').innerHTML = compChecks.length ? compChecks.map(c => `
+            <div class="bd-comp-rule">
+                <span class="bd-comp-icon">${c.result === 'COMPLIANT' || c.result === 'PASS' ? '✅' : c.result === 'WARNING' ? '⚠️' : '❌'}</span>
+                <span style="flex:1;">${c.check_type?.replace(/_/g, ' ') || c.rule_name || '--'}</span>
+                ${resultBadge(c.result)}
+            </div>`) .join('') : '<div style="color:var(--muted);font-size:12px;">No compliance checks run for this bond</div>';
+
+        document.getElementById('bdRegNotes').innerHTML = `
+            ${bm.is_pf_eligible ? '✅ <b>EPFO Eligible</b> — Meets PF Trust investment criteria per EPFO circular 2023.' : '❌ <b>Not PF Eligible</b>.'}
+            ${bm.credit_rating ? `<br>Rating: <b>${bm.credit_rating}</b>` : ''}
+            ${comp.notes ? `<br>${comp.notes}` : ''}
+            ${!compChecks.length ? '<br><span style="color:var(--muted);">Run compliance check via pipeline for detailed validation.</span>' : ''}
+        `;
+
+        // ─ Section 9: Risk Score ──────────────────────
+        const risk = d.risk_score || {};
+        const riskVal = risk.composite_score;
+        document.getElementById('bdGaugeText').textContent = riskVal != null ? fmt(riskVal, 0) : '--';
+        const catColor = risk.risk_category === 'SAFE' ? '#22c55e' : risk.risk_category === 'WATCH' ? '#f59e0b' : '#ef4444';
+        document.getElementById('bdGaugeCat').textContent = risk.risk_category || '';
+        document.getElementById('bdGaugeCat').setAttribute('fill', catColor);
+        document.getElementById('bdRiskCategory').textContent = '';
+        if (riskVal != null) {
+            // Arc: score 0-100 => dashoffset 220-0 (full arc is 220)
+            const offset = 220 - ((riskVal / 100) * 220);
+            document.getElementById('bdGaugeArc').setAttribute('stroke-dashoffset', offset.toFixed(1));
+            document.getElementById('bdGaugeArc').setAttribute('stroke', catColor);
+        }
+
+        const components = risk.component_scores || {};
+        const compWeights = { financial_strength: 20, covenant_strength: 10, liquidity: 10, rating: 20, news_sentiment: 10, sector_risk: 10, market_volatility: 10, spread_vs_peers: 10 };
+        document.getElementById('bdComponentScores').innerHTML = Object.entries(components).map(([k, v]) => {
+            const pct = Number(v) * 100;
+            const color = pct >= 66 ? '#22c55e' : pct >= 36 ? '#f59e0b' : '#ef4444';
+            const weight = compWeights[k] || 0;
+            return `<div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;">
+                    <span style="color:var(--text);">${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span style="color:${color};font-weight:700;">${fmt(pct, 0)}/100 <span style="color:var(--muted);font-weight:400;">(wt ${weight}%)</span></span>
+                </div>
+                <div style="background:#1e293b;height:6px;border-radius:3px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.5s;"></div>
+                </div>
+            </div>`;
+        }).join('') || '<div style="color:var(--muted);font-size:12px;">No risk score calculated. Run pipeline to generate.</div>';
+
+        const rec2 = risk.recommendation || d.iss_score?.recommendation;
+        document.getElementById('bdRecommendation').innerHTML = risk.recommendation_detail || (rec2 ? `
+            <div style="display:flex;align-items:center;gap:12px;">
+                ${recBadge(rec2)}
+                <span>${rec2 === 'STRONG_BUY' ? 'Strong institutional conviction. Buy with full allocation.' :
+                       rec2 === 'BUY' ? 'Suitable for investment. Proceed with allocation.' :
+                       rec2 === 'HOLD' ? 'Monitor closely. No new allocation recommended.' :
+                       rec2 === 'SELL' ? 'Consider reducing exposure. Risk has increased.' :
+                       rec2 === 'AVOID' ? 'Do not invest. Bond fails key risk criteria.' : rec2}</span>
+            </div>` : 'Run pipeline to generate investment recommendation.');
+    }
+
+    // ─── KV HELPERS ─────────────────────────────────────────────
+    function kv(pairs) {
+        return pairs.map(([label, val, colorClass]) => `
+            <div class="bd-kv">
+                <div class="bd-kv-label">${label}</div>
+                <div class="bd-kv-value ${colorClass || ''}">${val || '--'}</div>
+            </div>`).join('');
+    }
+
+    function kv1(label, val) {
+        return `<div class="bd-kv"><div class="bd-kv-label">${label}</div><div class="bd-kv-value">${val || '--'}</div></div>`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ─── INVESTMENT ANALYSIS TAB ──────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    let _iaISIN = null;
+
+    function openInvestAnalysis(isin) {
+        _iaISIN = isin;
+        const tab = document.getElementById('investAnalysisTab');
+        tab.style.display = 'block';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        document.getElementById('tab-investanalysis').classList.add('active');
+        window.scrollTo(0, 0);
+        loadInvestAnalysis(isin);
+    }
+
+    function closeInvestAnalysis() {
+        document.getElementById('investAnalysisTab').style.display = 'none';
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        document.querySelector('.tab[onclick="switchTab(\'overview\')"]').classList.add('active');
+        document.getElementById('tab-overview').classList.add('active');
+        _iaISIN = null;
+    }
+
+    function toggleIA(el) {
+        el.closest('.ia-section').classList.toggle('collapsed');
+    }
+
+    async function loadInvestAnalysis(isin) {
+        document.getElementById('iaTitle').textContent = 'Loading Investment Analysis...';
+        document.getElementById('iaISIN').textContent = isin;
+        document.getElementById('iaTags').innerHTML = '';
+        document.getElementById('iaRiskBadge').innerHTML = '<div class="spinner"></div>';
+        document.getElementById('iaRiskLabel').textContent = '';
+        // Reset DD section
+        document.getElementById('iaDDLoading').style.display = 'block';
+        document.getElementById('iaDDContent').style.display = 'none';
+        document.getElementById('iaDDError').style.display = 'none';
+        document.getElementById('iaDDRecomBadge').innerHTML = '';
+
+        const res = await api(`/investment-analysis/${isin}`);
+        if (!res || !res.sections) {
+            document.getElementById('iaTitle').textContent = 'Error loading analysis';
+            document.getElementById('iaRiskBadge').textContent = '--';
+            return;
+        }
+        const S = res.sections;
+
+        // ── Section 1: Bond Snapshot ──
+        renderIASnapshot(S.snapshot || {});
+        // ── Section 2: Pricing ──
+        renderIAPricing(S.pricing || {});
+        // ── Section 3: IM Intelligence ──
+        renderIAIMIntel(S.im_intelligence || {});
+        // ── Section 4: Hidden Risk (H1-H24) ──
+        renderIAHiddenRisk(S.hidden_risk || {});
+        // ── Section 5: Financial Analysis ──
+        renderIAFinancial(S.financial_analysis || {});
+        // ── Section 6: News & Events ──
+        renderIANews(S.news_events || {});
+        // ── Section 7: Quant Analytics ──
+        renderIAQuant(S.quant_analytics || {});
+        // ── Section 8: Compliance & EPFO ──
+        renderIACompliance(S.compliance || {});
+        // ── Section 9: Portfolio Impact ──
+        renderIAPortfolio(S.portfolio_impact);
+        // ── Section 10: Audit Trail ──
+        renderIAAudit(S.audit_trail || {});
+        // ── Section 12: Institutional Due Diligence & IC Report ──
+        renderIADueDiligence(S.due_diligence || {});
+    }
+
+    // ── IA Section 1: Snapshot ──
+    function renderIASnapshot(snap) {
+        const bm = snap.bond || {};
+        const mkt = snap.latest_market || {};
+        document.getElementById('iaTitle').textContent = bm.issuer_name || bm.bond_name || _iaISIN;
+        document.getElementById('iaISIN').textContent = `ISIN: ${_iaISIN} · ${bm.bond_name || ''}`;
+        document.getElementById('iaTags').innerHTML = [
+            bm.issuer_type ? `<span class="panel-badge badge-blue">${bm.issuer_type}</span>` : '',
+            bm.credit_rating ? `<span class="panel-badge badge-green">${bm.credit_rating}</span>` : '',
+            bm.is_pf_eligible ? '<span class="panel-badge badge-green">PF Eligible</span>' : '<span class="panel-badge badge-red">Not PF Eligible</span>',
+            bm.instrument_type ? `<span class="panel-badge badge-amber">${bm.instrument_type}</span>` : '',
+            bm.sector ? `<span class="panel-badge badge-blue">${bm.sector}</span>` : ''
+        ].join('');
+
+        document.getElementById('iaSnapKV').innerHTML = kv([
+            ['Coupon Rate', `${fmt(bm.coupon_rate)}%`, bm.coupon_rate > 7 ? 'green' : ''],
+            ['Coupon Freq', bm.coupon_frequency || '--'],
+            ['Face Value', `₹${fmt(bm.face_value, 0)}`, ''],
+            ['Maturity Date', bm.maturity_date || '--'],
+            ['Issue Date', bm.issue_date || '--'],
+            ['Issue Size', bm.issue_size_cr ? `₹${fmt(bm.issue_size_cr, 0)} Cr` : '--'],
+            ['Issuer Type', bm.issuer_type || '--'],
+            ['Sector', bm.sector || '--'],
+            ['Security Type', bm.security_type || '--'],
+            ['Guarantor', bm.guarantor_name || 'None'],
+            ['Listing', bm.listing_status || '--'],
+            ['Day Count', bm.day_count || 'Actual/365']
+        ]);
+
+        const rh = snap.rating_history || [];
+        document.getElementById('iaRatingBody').innerHTML = rh.length ? rh.map(r => `
+            <tr>
+                <td>${r.effective_date || '--'}</td>
+                <td>${r.agency || '--'}</td>
+                <td>${r.old_rating || '--'}</td>
+                <td style="font-weight:700;">${r.new_rating || '--'}</td>
+                <td>${r.outlook || '--'}</td>
+            </tr>`).join('') : '<tr><td colspan="5" style="color:var(--muted);">No rating history</td></tr>';
+    }
+
+    // ── IA Section 2: Pricing ──
+    function renderIAPricing(pricing) {
+        if (pricing.error) {
+            document.getElementById('iaPricingKV').innerHTML = `<div style="color:var(--amber);font-size:12px;">⚠ ${pricing.error}</div>`;
+            return;
+        }
+        const p = pricing;
+        document.getElementById('iaPricingKV').innerHTML = kv([
+            ['Clean Price', p.clean_price != null ? `₹${fmt(p.clean_price)}` : '--'],
+            ['Dirty Price', p.dirty_price != null ? `₹${fmt(p.dirty_price)}` : '--'],
+            ['Accrued Interest', p.accrued_interest != null ? `₹${fmt(p.accrued_interest)}` : '--'],
+            ['Current Yield', p.current_yield != null ? `${fmt(p.current_yield)}%` : '--', p.current_yield > 7.5 ? 'green' : ''],
+            ['YTM', p.ytm != null ? `${fmt(p.ytm)}%` : '--', p.ytm > 7.5 ? 'green' : ''],
+            ['YTC', p.ytc != null ? `${fmt(p.ytc)}%` : '--'],
+            ['Days Accrued', p.days_accrued != null ? p.days_accrued : '--'],
+            ['Settlement Date', p.settlement_date || '--']
+        ]);
+
+        const dur = p;
+        document.getElementById('iaDurationMetrics').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+                <div class="bd-kv"><div class="bd-kv-label">Macaulay Duration</div><div class="bd-kv-value">${dur.macaulay_duration != null ? fmt(dur.macaulay_duration) + 'Y' : '--'}</div></div>
+                <div class="bd-kv"><div class="bd-kv-label">Modified Duration</div><div class="bd-kv-value">${dur.modified_duration != null ? fmt(dur.modified_duration) + 'Y' : '--'}</div></div>
+                <div class="bd-kv"><div class="bd-kv-label">Convexity</div><div class="bd-kv-value">${dur.convexity != null ? fmt(dur.convexity) : '--'}</div></div>
+                <div class="bd-kv"><div class="bd-kv-label">DV01</div><div class="bd-kv-value">${dur.dv01 != null ? '₹' + fmt(dur.dv01, 4) : '--'}</div></div>
+            </div>`;
+
+        const sens = p.sensitivity || [];
+        document.getElementById('iaSensitivityBody').innerHTML = sens.length ? sens.map(s => {
+            const chgColor = s.price_change_pct < 0 ? 'var(--red)' : 'var(--green)';
+            return `<tr>
+                <td>${s.shock_bps > 0 ? '+' : ''}${s.shock_bps} bps</td>
+                <td class="num">${fmt(s.new_yield)}%</td>
+                <td class="num">₹${fmt(s.new_price)}</td>
+                <td class="num" style="color:${chgColor}">${s.pnl_per_unit != null ? '₹' + fmt(s.pnl_per_unit) : '--'}</td>
+                <td class="num" style="color:${chgColor}">${s.price_change_pct != null ? fmt(s.price_change_pct) + '%' : '--'}</td>
+            </tr>`;
+        }).join('') : '<tr><td colspan="5" style="color:var(--muted);">No sensitivity data</td></tr>';
+
+        document.getElementById('iaSpreadKV').innerHTML = kv([
+            ['G-Spread', p.g_spread_bps != null ? `${fmt(p.g_spread_bps, 0)} bps` : '--'],
+            ['Z-Spread', p.z_spread_bps != null ? `${fmt(p.z_spread_bps, 0)} bps` : '--'],
+            ['I-Spread', p.i_spread_bps != null ? `${fmt(p.i_spread_bps, 0)} bps` : '--'],
+            ['OAS', p.oas_bps != null ? `${fmt(p.oas_bps, 0)} bps` : '--']
+        ]);
+    }
+
+    // ── IA Section 3: IM Intelligence ──
+    function renderIAIMIntel(imData) {
+        const im = imData.im_data || {};
+        document.getElementById('iaIMKV').innerHTML = kv([
+            ['Proceeds Use', im.use_of_proceeds || '--'],
+            ['Rating Agency', im.rating_agency || '--'],
+            ['Rating Rationale', (im.rating_rationale || '').substring(0, 80) + (im.rating_rationale?.length > 80 ? '...' : '')],
+            ['Prospectus Date', im.prospectus_date || '--'],
+            ['Repayment Type', im.repayment_schedule_type || '--'],
+            ['DSCR Floor', im.dscr_floor != null ? fmt(im.dscr_floor) : '--'],
+            ['Debt/EBITDA Cap', im.debt_ebitda_cap != null ? fmt(im.debt_ebitda_cap) : '--'],
+            ['Security Cover', im.security_cover_ratio ? `${fmt(im.security_cover_ratio)}x` : '--']
+        ]);
+
+        const flags = im.risk_flags || [];
+        document.getElementById('iaIMRiskFlags').innerHTML = flags.length ? flags.map(f => `
+            <div class="bd-risk-flag ${(f.severity || '').toLowerCase()}">
+                <span>${f.severity === 'HIGH' ? '🔴' : f.severity === 'MEDIUM' ? '🟡' : '🟢'}</span>
+                <div>
+                    <div style="font-weight:600;">${f.flag_type?.replace(/_/g, ' ') || f.flag_type}</div>
+                    <div style="font-size:11px;color:var(--muted);">${f.description || ''}</div>
+                </div>
+            </div>`).join('') : '<div style="color:var(--green);font-size:12px;">✅ No risk flags from IM parsing</div>';
+
+        const covs = imData.covenant_vs_actual || [];
+        document.getElementById('iaCovenantBody').innerHTML = covs.length ? covs.map(c => `
+            <tr>
+                <td>${c.covenant_name || '--'}</td>
+                <td class="num">${c.threshold_value != null ? fmt(c.threshold_value) : '--'}</td>
+                <td class="num">${c.actual_value != null ? fmt(c.actual_value) : '--'}</td>
+                <td>${c.is_breached ? '<span class="panel-badge badge-red">BREACH</span>' : '<span class="panel-badge badge-green">OK</span>'}</td>
+            </tr>`).join('') : '<tr><td colspan="4" style="color:var(--muted);">No covenant data</td></tr>';
+    }
+
+    // ── IA Section 4: Hidden Risk (H1-H24) ──
+    function renderIAHiddenRisk(hr) {
+        if (hr.error) {
+            document.getElementById('iaHRSummary').innerHTML = `<div style="color:var(--amber);font-size:12px;">⚠ ${hr.error}</div>`;
+            return;
+        }
+        // API returns 'heuristics' (all) and 'triggered_heuristics' (triggered only)
+        const results = hr.heuristics || hr.results || [];
+        const triggered = hr.triggered_heuristics || results.filter(r => r.triggered);
+        const passed = results.filter(r => !r.triggered);
+        const score = hr.hidden_risk_score != null ? hr.hidden_risk_score : '--';
+        const riskLevel = hr.risk_level || '';
+        const scoreColor = score !== '--' ? (score <= 20 ? 'var(--green)' : score <= 50 ? 'var(--amber)' : 'var(--red)') : 'var(--muted)';
+
+        // Header badge
+        document.getElementById('iaRiskBadge').innerHTML = score !== '--' ? `<span style="color:${scoreColor}">${fmt(score, 0)}</span>` : '--';
+        document.getElementById('iaRiskLabel').textContent = score !== '--' ? `Hidden Risk Score · ${riskLevel} (${triggered.length}/${results.length} triggered)` : '';
+
+        // Quick badge on section header
+        const qb = document.getElementById('iaHRQuickBadge');
+        if (score !== '--') {
+            qb.innerHTML = `<span class="panel-badge badge-${score > 50 ? 'red' : score > 20 ? 'amber' : 'green'}">${riskLevel} · ${triggered.length} risks</span>`;
+        }
+
+        // Gauge
+        const gaugeScore = document.getElementById('iaHRGaugeScore');
+        const gaugeLevel = document.getElementById('iaHRGaugeLevel');
+        const gaugeBar = document.getElementById('iaHRGaugeBar');
+        gaugeScore.innerHTML = score !== '--' ? `<span style="color:${scoreColor}">${fmt(score, 0)}</span>` : '--';
+        gaugeLevel.innerHTML = riskLevel ? `<span style="color:${scoreColor}">${riskLevel}</span>` : '';
+        if (score !== '--') {
+            gaugeBar.style.width = `${Math.min(score, 100)}%`;
+            gaugeBar.style.background = scoreColor;
+        }
+
+        // Summary KV
+        document.getElementById('iaHRSummary').innerHTML = kv([
+            ['Total Heuristics', hr.total_heuristics || results.length || 24],
+            ['Triggered', hr.triggered_count || triggered.length, triggered.length > 0 ? 'red' : 'green'],
+            ['Passed', passed.length, 'green'],
+            ['Hidden Risk Score', score !== '--' ? fmt(score, 1) + '/100' : '--', score > 50 ? 'red' : score > 20 ? 'amber' : 'green'],
+            ['Risk Level', riskLevel || '--', riskLevel === 'CRITICAL' ? 'red' : riskLevel === 'HIGH' ? 'red' : riskLevel === 'MEDIUM' ? 'amber' : 'green'],
+            ['Analysis Date', hr.analysis_date || '--'],
+            ['Engine Version', hr.audit_trail?.engine_version || '--'],
+            ['IM Data', hr.audit_trail?.data_sources?.im_data_available ? '✓ Available' : '✗ Missing', hr.audit_trail?.data_sources?.im_data_available ? 'green' : 'red']
+        ]);
+
+        // Category breakdown from API or computed
+        const catSummary = hr.category_summary || {};
+        const categories = Object.keys(catSummary).length ? catSummary : (() => {
+            const cats = {};
+            results.forEach(r => {
+                const cat = r.category || 'OTHER';
+                if (!cats[cat]) cats[cat] = { total: 0, triggered: 0, max_severity: 'LOW' };
+                cats[cat].total++;
+                if (r.triggered) {
+                    cats[cat].triggered++;
+                    const sevOrder = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 };
+                    if ((sevOrder[r.severity] || 0) > (sevOrder[cats[cat].max_severity] || 0))
+                        cats[cat].max_severity = r.severity;
+                }
+            });
+            return cats;
+        })();
+
+        const catLabels = {
+            LINGUISTIC: '🔎 Linguistic Weakness', STRUCTURAL: '🏗 Structural Risk',
+            COVENANT: '📋 Covenant Weakness', CASHFLOW: '💰 Cashflow Dependency',
+            LEGAL: '⚖️ Legal Ambiguity', GOVERNANCE: '🏛 Governance & Related Party',
+            DEBT_STACK: '📊 Debt Stack Risk', RATING: '⭐ Rating Related',
+            MARKET: '📈 Market Based'
+        };
+        document.getElementById('iaHRCategories').innerHTML = Object.entries(categories).map(([cat, info]) => {
+            const maxSev = (info.max_severity || info.maxSeverity || 'LOW').toUpperCase();
+            const catColor = info.triggered > 0 ? (maxSev === 'CRITICAL' ? '#dc2626' : maxSev === 'HIGH' ? '#f97316' : 'var(--amber)') : 'var(--green)';
+            return `<div class="ia-cat-card" style="border-left:3px solid ${catColor};text-align:left;padding:10px 14px;">
+                <div style="font-size:12px;font-weight:700;color:${catColor};">${catLabels[cat] || cat.replace(/_/g, ' ')}</div>
+                <div style="font-size:20px;font-weight:800;color:${catColor};margin:4px 0;">${info.triggered}/${info.total}</div>
+                <div style="font-size:10px;color:var(--muted);">Max: ${maxSev}</div>
+            </div>`;
+        }).join('');
+
+        // Composite Risk Score Breakdown
+        const compositeLabels = {
+            LINGUISTIC: 'Hidden Linguistic Risk', STRUCTURAL: 'Structural Risk',
+            COVENANT: 'Covenant Strength', CASHFLOW: 'Cashflow Dependency',
+            LEGAL: 'Legal Ambiguity', GOVERNANCE: 'Governance Risk',
+            DEBT_STACK: 'Debt Stack Risk', RATING: 'Rating Risk', MARKET: 'Market Risk'
+        };
+        document.getElementById('iaHRComposite').innerHTML = Object.entries(categories).map(([cat, info]) => {
+            const maxSev = (info.max_severity || info.maxSeverity || 'LOW').toUpperCase();
+            const catPct = info.total > 0 ? Math.round(info.triggered / info.total * 100) : 0;
+            const barColor = catPct === 0 ? 'var(--green)' : catPct <= 50 ? 'var(--amber)' : 'var(--red)';
+            return `<div class="panel" style="padding:10px 14px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+                    <span style="font-weight:600;">${compositeLabels[cat] || cat.replace(/_/g, ' ')}</span>
+                    <span style="color:${barColor};font-weight:700;">${catPct}%</span>
+                </div>
+                <div class="ia-comp-bar"><div class="ia-comp-fill" style="width:${catPct}%;background:${barColor};"></div></div>
+            </div>`;
+        }).join('');
+
+        // Triggered heuristics (detailed cards with explainability)
+        document.getElementById('iaHRTriggered').innerHTML = triggered.length ? triggered.map(h => {
+            const sev = (h.severity || 'MEDIUM').toUpperCase();
+            const sevLow = sev.toLowerCase();
+            const sevIcon = sev === 'CRITICAL' ? '🔴' : sev === 'HIGH' ? '🟠' : sev === 'MEDIUM' ? '🟡' : '🟢';
+            const catLabel = catLabels[h.category] || (h.category || '').replace(/_/g, ' ');
+            return `<div class="ia-heuristic-card ${sevLow}" style="margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                    <div style="flex:1;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:14px;">${sevIcon}</span>
+                            <span class="ia-heuristic-id">${h.heuristic_id}</span>
+                            <span style="font-weight:700;font-size:13px;color:var(--text);">${h.name || ''}</span>
+                        </div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${catLabel} · ${(h.sub_category || '').replace(/_/g, ' ')}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+                        <span class="panel-badge badge-${sev === 'CRITICAL' || sev === 'HIGH' ? 'red' : sev === 'MEDIUM' ? 'amber' : 'green'}" style="font-size:12px;padding:3px 10px;">${sev}</span>
+                        <span style="font-size:11px;color:var(--muted);background:var(--surface);padding:2px 8px;border-radius:4px;">Impact: ${h.impact_weight || '--'}/10</span>
+                    </div>
+                </div>
+                <div style="margin-top:8px;font-size:13px;color:var(--text);line-height:1.6;background:rgba(0,0,0,0.15);padding:10px 14px;border-radius:6px;">${h.explanation || ''}</div>
+                ${h.source_text ? `<div style="margin-top:6px;font-size:12px;color:var(--muted);font-style:italic;border-left:3px solid var(--accent);padding:6px 12px;background:rgba(79,140,255,0.05);border-radius:0 6px 6px 0;">"${(h.source_text || '').substring(0, 300)}${(h.source_text || '').length > 300 ? '...' : ''}"</div>` : ''}
+                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:16px;font-size:11px;">
+                    ${h.page_reference ? `<span style="color:var(--accent);background:rgba(79,140,255,0.1);padding:2px 8px;border-radius:4px;">📄 ${h.page_reference}</span>` : ''}
+                    ${h.confidence ? `<span style="color:var(--muted);background:var(--surface);padding:2px 8px;border-radius:4px;">🎯 Confidence: ${(h.confidence * 100).toFixed(0)}%</span>` : ''}
+                </div>
+                ${h.remediation ? `<div style="margin-top:8px;font-size:12px;color:var(--amber);background:rgba(245,158,11,0.08);padding:8px 12px;border-radius:6px;border-left:3px solid var(--amber);"><b>🛡 Remediation:</b> ${h.remediation}</div>` : ''}
+            </div>`;
+        }).join('') : '<div style="color:var(--green);font-size:12px;padding:12px;background:rgba(34,197,94,0.08);border-radius:8px;text-align:center;">✅ No hidden risks detected — all 24 heuristics passed</div>';
+
+        // Passed heuristics (compact)
+        document.getElementById('iaHRPassed').innerHTML = passed.length ? passed.map(h =>
+            `<span style="display:inline-block;padding:3px 10px;margin:2px;background:#1a2e1a;border-radius:4px;font-size:11px;color:var(--green);" title="${h.name || ''}">
+                ✅ ${h.heuristic_id} — ${h.name || ''}
+            </span>`
+        ).join('') : '';
+    }
+
+    // ── IA Section 5: Financial Analysis ──
+    function renderIAFinancial(finData) {
+        const financials = finData.financials || finData || [];
+        const list = Array.isArray(financials) ? financials : (financials.financials || []);
+        if (!list.length) {
+            document.getElementById('iaFinKV').innerHTML = '<div style="color:var(--muted);font-size:12px;">No financial data available</div>';
+            return;
+        }
+        const latest = list[0] || {};
+        document.getElementById('iaFinKV').innerHTML = kv([
+            ['Revenue', latest.revenue_cr ? `₹${fmt(latest.revenue_cr, 0)} Cr` : '--'],
+            ['EBITDA', latest.ebitda_cr ? `₹${fmt(latest.ebitda_cr, 0)} Cr` : '--'],
+            ['PAT', latest.pat_cr ? `₹${fmt(latest.pat_cr, 0)} Cr` : '--', latest.pat_cr > 0 ? 'green' : 'red'],
+            ['Fiscal Year', latest.fiscal_year || '--'],
+            ['Debt/EBITDA', latest.debt_ebitda ? fmt(latest.debt_ebitda) : '--', latest.debt_ebitda > 5 ? 'red' : latest.debt_ebitda > 3 ? 'amber' : 'green'],
+            ['ICR', latest.interest_coverage ? fmt(latest.interest_coverage) : '--', latest.interest_coverage < 2 ? 'red' : latest.interest_coverage < 3 ? 'amber' : 'green'],
+            ['DSCR', latest.dscr ? fmt(latest.dscr) : '--', latest.dscr < 1 ? 'red' : latest.dscr < 1.25 ? 'amber' : 'green'],
+            ['Net Worth', latest.net_worth_cr ? `₹${fmt(latest.net_worth_cr, 0)} Cr` : '--']
+        ]);
+
+        const ratios = [
+            ['Debt/Equity', latest.debt_equity, v => v > 3 ? 'red' : v > 2 ? 'amber' : 'green'],
+            ['Current Ratio', latest.current_ratio, v => v < 1 ? 'red' : v < 1.5 ? 'amber' : 'green'],
+            ['ROE %', latest.roe, v => v < 5 ? 'red' : v < 10 ? 'amber' : 'green'],
+            ['ROCE %', latest.roce, v => v < 5 ? 'red' : v < 10 ? 'amber' : 'green'],
+            ['EBITDA Margin %', latest.ebitda_margin, v => v < 10 ? 'red' : v < 20 ? 'amber' : 'green'],
+            ['FCF (₹ Cr)', latest.free_cashflow_cr, v => v < 0 ? 'red' : 'green'],
+        ];
+        document.getElementById('iaRatiosBody').innerHTML = ratios.map(([name, val, fn]) => {
+            if (val == null) return '';
+            const c = fn(val);
+            return `<tr><td>${name}</td><td class="num" style="color:var(--${c})">${fmt(val)}</td><td>${c === 'green' ? '🟢' : c === 'amber' ? '🟡' : '🔴'}</td></tr>`;
+        }).join('') || '<tr><td colspan="3" style="color:var(--muted);">No ratio data</td></tr>';
+
+        const healthScore = finData.health_score || latest.health_score;
+        const trends = finData.trends || {};
+        document.getElementById('iaFinTrends').innerHTML = `
+            ${healthScore != null ? `<div style="text-align:center;margin-bottom:10px;">
+                <div style="font-size:11px;color:var(--muted);">Financial Health</div>
+                <div style="font-size:32px;font-weight:800;color:${healthScore >= 70 ? 'var(--green)' : healthScore >= 40 ? 'var(--amber)' : 'var(--red)'};">${fmt(healthScore, 0)}</div>
+            </div>` : ''}
+            ${Object.entries(trends).map(([k, v]) => {
+                const icon = v === 'IMPROVING' ? '📈' : v === 'DETERIORATING' ? '📉' : '➡️';
+                const color = v === 'IMPROVING' ? 'var(--green)' : v === 'DETERIORATING' ? 'var(--red)' : 'var(--muted)';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(45,51,72,0.3);">
+                    <span>${icon}</span>
+                    <span style="flex:1;">${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span style="color:${color};font-weight:600;">${v}</span>
+                </div>`;
+            }).join('') || '<div style="color:var(--muted);">No trend data</div>'}`;
+    }
+
+    // ── IA Section 6: News & Events ──
+    function renderIANews(newsData) {
+        const newsItems = newsData.news || [];
+        const eventRisks = newsData.event_risks || [];
+        const sentScore = newsData.sentiment_score;
+        const sentiment = newsData.overall_sentiment;
+
+        document.getElementById('iaNewsKV').innerHTML = kv([
+            ['Sentiment Score', sentScore != null ? fmt(sentScore, 0) : '--', sentScore > 20 ? 'green' : sentScore < -20 ? 'red' : ''],
+            ['Sentiment', sentiment || '--', sentiment === 'POSITIVE' ? 'green' : sentiment === 'NEGATIVE' ? 'red' : ''],
+            ['News Items', newsItems.length || 0],
+            ['Event Risks', eventRisks.length || 0, eventRisks.length > 0 ? 'amber' : 'green']
+        ]);
+
+        document.getElementById('iaEventRisks').innerHTML = eventRisks.length ? eventRisks.map(e => `
+            <div class="bd-risk-flag ${(e.severity || '').toLowerCase() === 'critical' || (e.severity || '').toLowerCase() === 'high' ? 'high' : 'medium'}">
+                <span>${e.severity === 'CRITICAL' ? '🔴' : e.severity === 'HIGH' ? '🟠' : '🟡'}</span>
+                <div>
+                    <div style="font-weight:600;">${(e.event_type || '').replace(/_/g, ' ')}</div>
+                    <div style="font-size:11px;color:var(--muted);">${e.description || ''}</div>
+                </div>
+            </div>`).join('') : '<div style="color:var(--green);font-size:12px;padding:8px;">✅ No active event risks</div>';
+
+        document.getElementById('iaNewsList').innerHTML = newsItems.length ? newsItems.slice(0, 10).map(n => `
+            <div class="bd-news-item ${(n.sentiment || 'neutral').toLowerCase()}">
+                <div style="font-size:12px;font-weight:600;">${n.headline || n.title || '--'}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">
+                    ${n.source || ''} · ${n.news_date ? new Date(n.news_date).toLocaleDateString() : ''}
+                    · <span style="color:${n.sentiment === 'POSITIVE' ? 'var(--green)' : n.sentiment === 'NEGATIVE' ? 'var(--red)' : 'var(--muted)'};">${n.sentiment || 'NEUTRAL'}</span>
+                </div>
+            </div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px;">No news items</div>';
+    }
+
+    // ── IA Section 7: Quant Analytics ──
+    function renderIAQuant(quantData) {
+        const risk = quantData.risk_score || {};
+        const riskVal = risk.composite_score;
+        const cat = risk.risk_category || '';
+        const catColor = cat === 'SAFE' ? '#22c55e' : cat === 'WATCH' ? '#f59e0b' : cat === 'HIGH_RISK' ? '#ef4444' : 'var(--muted)';
+
+        document.getElementById('iaScoreGauge').innerHTML = riskVal != null ?
+            `<span style="color:${catColor}">${fmt(riskVal, 0)}</span>` : '--';
+        document.getElementById('iaScoreCategory').innerHTML = cat ?
+            `<span style="color:${catColor};font-weight:700;">${cat.replace(/_/g, ' ')}</span>` : '';
+
+        // Risk component bars (new inverted scale: higher = more risk)
+        const weights = {
+            financial_strength: 25, covenant_strength: 20, liquidity: 10,
+            spread_vs_peers: 10, rating: 10, news_sentiment: 10,
+            structural_risk: 10, hidden_risk_im: 5
+        };
+        const components = risk.component_scores || {};
+        document.getElementById('iaRiskComponents').innerHTML = Object.entries(components).map(([k, v]) => {
+            const pct = Math.min(Number(v) || 0, 100);
+            // Inverted: low score = green (safe), high score = red (risky)
+            const color = pct <= 30 ? '#22c55e' : pct <= 60 ? '#f59e0b' : '#ef4444';
+            const weight = weights[k] || 0;
+            return `<div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;">
+                    <span>${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span style="color:${color};font-weight:700;">${fmt(pct, 0)}/100 <span style="color:var(--muted);font-weight:400;">(wt ${weight}%)</span></span>
+                </div>
+                <div class="ia-comp-bar"><div class="ia-comp-fill" style="width:${pct}%;background:${color};"></div></div>
+            </div>`;
+        }).join('') || '<div style="color:var(--muted);font-size:12px;">No risk components calculated</div>';
+
+        // Scenarios
+        const scenarios = quantData.scenario_analysis || {};
+        const scenarioEntries = scenarios.scenarios || scenarios;
+        if (typeof scenarioEntries === 'object' && !Array.isArray(scenarioEntries)) {
+            document.getElementById('iaScenarios').innerHTML = Object.entries(scenarioEntries).map(([label, sc]) => {
+                if (typeof sc !== 'object') return '';
+                return `<div class="bd-scenario-card">
+                    <div class="bd-scenario-label">${label.replace(/_/g, ' ')}</div>
+                    <div class="bd-scenario-value" style="color:${(sc.price_change_pct || 0) < 0 ? 'var(--red)' : 'var(--green)'};">${sc.price_change_pct != null ? fmt(sc.price_change_pct, 2) + '%' : '--'}</div>
+                    <div style="font-size:11px;color:var(--muted);">P&L: ${sc.pnl_cr != null ? '₹' + fmt(sc.pnl_cr, 2) + ' Cr' : '--'}</div>
+                </div>`;
+            }).join('');
+        } else {
+            document.getElementById('iaScenarios').innerHTML = '<div style="color:var(--muted);font-size:12px;">No scenario data</div>';
+        }
+
+        // Default probability & Recovery
+        const pd = risk.default_probability || quantData.default_probability || {};
+        document.getElementById('iaDefaultAnalysis').innerHTML = `
+            <div style="display:grid;gap:6px;font-size:12px;">
+                ${pd.pd_1y != null ? `<div><span style="color:var(--muted);">PD (1Y):</span> <b style="color:${pd.pd_1y > 0.05 ? 'var(--red)' : 'var(--green)'}">${(pd.pd_1y * 100).toFixed(2)}%</b></div>` : ''}
+                ${pd.pd_3y != null ? `<div><span style="color:var(--muted);">PD (3Y):</span> <b>${(pd.pd_3y * 100).toFixed(2)}%</b></div>` : ''}
+                ${pd.lgd != null ? `<div><span style="color:var(--muted);">LGD:</span> <b>${(pd.lgd * 100).toFixed(0)}%</b></div>` : ''}
+                ${pd.ead_cr != null ? `<div><span style="color:var(--muted);">EAD:</span> <b>₹${fmt(pd.ead_cr, 2)} Cr</b></div>` : ''}
+                ${pd.el_cr != null ? `<div><span style="color:var(--muted);">Expected Loss:</span> <b style="color:var(--red);">₹${fmt(pd.el_cr, 2)} Cr</b></div>` : ''}
+                ${!pd.pd_1y && !pd.lgd ? '<div style="color:var(--muted);">Run risk scoring for PD analysis</div>' : ''}
+            </div>`;
+
+        const rec = risk.recovery || quantData.recovery || {};
+        document.getElementById('iaRecovery').innerHTML = `
+            <div style="display:grid;gap:6px;font-size:12px;">
+                ${rec.recovery_rate != null ? `<div><span style="color:var(--muted);">Recovery Rate:</span> <b>${(rec.recovery_rate * 100).toFixed(0)}%</b></div>` : ''}
+                ${rec.recovery_value_cr != null ? `<div><span style="color:var(--muted);">Recovery Value:</span> <b style="color:var(--green);">₹${fmt(rec.recovery_value_cr, 2)} Cr</b></div>` : ''}
+                ${rec.security_type != null ? `<div><span style="color:var(--muted);">Security Type:</span> <b>${rec.security_type}</b></div>` : ''}
+                ${!rec.recovery_rate ? '<div style="color:var(--muted);">Recovery analysis requires scenario run</div>' : ''}
+            </div>`;
+    }
+
+    // ── IA Section 8: Compliance & EPFO ──
+    function renderIACompliance(compData) {
+        const pre = compData.pre_trade || {};
+        const epfo = compData.epfo_simulation || {};
+
+        const checks = pre.checks || [];
+        const passed = checks.filter(c => c.result === 'COMPLIANT' || c.result === 'PASS').length;
+
+        document.getElementById('iaCompKV').innerHTML = kv([
+            ['Overall Status', pre.overall_status || '--', pre.overall_status === 'COMPLIANT' ? 'green' : pre.overall_status === 'WARNING' ? 'amber' : 'red'],
+            ['Rules Checked', checks.length || '--'],
+            ['Passed', passed, 'green'],
+            ['EPFO Status', epfo.overall_status || '--', epfo.overall_status === 'COMPLIANT' ? 'green' : 'red']
+        ]);
+
+        document.getElementById('iaCompRules').innerHTML = checks.length ? checks.map(c => `
+            <div class="bd-comp-rule">
+                <span class="bd-comp-icon">${c.result === 'COMPLIANT' || c.result === 'PASS' ? '✅' : c.result === 'WARNING' ? '⚠️' : '❌'}</span>
+                <span style="flex:1;">${c.check_type?.replace(/_/g, ' ') || c.rule_name || '--'}</span>
+                ${resultBadge(c.result)}
+            </div>`).join('') : '<div style="color:var(--muted);font-size:12px;">No pre-trade checks available</div>';
+
+        // EPFO Simulation with 3-tier classification
+        const epfoChecks = epfo.checks || [];
+        document.getElementById('iaEPFOChecks').innerHTML = epfoChecks.length ? epfoChecks.map(e => {
+            const cls = (e.classification || '').replace(/ /g, '_').toUpperCase();
+            const icon = cls === 'HARD_BREACH' ? '🔴' : cls === 'SOFT_BREACH' ? '🟠' : cls === 'EARLY_WARNING' ? '🟡' : '✅';
+            return `<div class="ia-epfo-check ${cls.toLowerCase()}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span>${icon}</span>
+                    <span style="font-weight:600;flex:1;">${e.rule_name || '--'}</span>
+                    <span class="panel-badge badge-${cls === 'HARD_BREACH' ? 'red' : cls === 'SOFT_BREACH' ? 'red' : cls === 'EARLY_WARNING' ? 'amber' : 'green'}">${cls.replace(/_/g, ' ')}</span>
+                </div>
+                <div style="font-size:11px;margin-top:4px;display:flex;gap:16px;">
+                    ${e.current_value != null ? `<span style="color:var(--muted);">Current: <b>${e.current_value}</b></span>` : ''}
+                    ${e.limit_value != null ? `<span style="color:var(--muted);">Limit: <b>${e.limit_value}</b></span>` : ''}
+                </div>
+                ${e.action_required ? `<div style="font-size:11px;margin-top:2px;color:var(--amber);">${e.action_required}</div>` : ''}
+                ${e.regulatory_reference ? `<div style="font-size:10px;margin-top:2px;color:var(--muted);font-style:italic;">${e.regulatory_reference}</div>` : ''}
+            </div>`;
+        }).join('') : '<div style="color:var(--muted);font-size:12px;">EPFO simulation not available</div>';
+    }
+
+    // ── IA Section 9: Portfolio Impact ──
+    function renderIAPortfolio(portData) {
+        if (!portData) {
+            document.getElementById('iaPortKV').innerHTML = '';
+            document.getElementById('iaPortNoData').style.display = 'block';
+            return;
+        }
+        document.getElementById('iaPortNoData').style.display = 'none';
+        document.getElementById('iaPortKV').innerHTML = kv([
+            ['Portfolio ID', portData.portfolio_id || '--'],
+            ['Current Weight', portData.weight_pct ? `${fmt(portData.weight_pct, 2)}%` : '--'],
+            ['Face Value', portData.face_value_cr ? `₹${fmt(portData.face_value_cr, 2)} Cr` : '--'],
+            ['Market Value', portData.market_value_cr ? `₹${fmt(portData.market_value_cr, 2)} Cr` : '--'],
+            ['Unrealized P/L', portData.unrealized_pnl_cr ? `₹${fmt(portData.unrealized_pnl_cr, 2)} Cr` : '--', portData.unrealized_pnl_cr > 0 ? 'green' : portData.unrealized_pnl_cr < 0 ? 'red' : ''],
+            ['Days Held', portData.days_held || '--']
+        ]);
+    }
+
+    // ── IA Section 10: Audit Trail ──
+    function renderIAAudit(auditData) {
+        const events = auditData.events || [];
+        const dataSources = auditData.data_source_verification || auditData.data_sources || {};
+        const scoreHistory = auditData.risk_score_history || [];
+
+        document.getElementById('iaAuditKV').innerHTML = kv([
+            ['Total Events', events.length || 0],
+            ['Last Analysis', events.length ? new Date(events[0].timestamp || events[0].created_at).toLocaleString() : '--'],
+            ['Data Sources', Object.keys(dataSources).length || '--'],
+            ['Score Changes', scoreHistory.length || 0]
+        ]);
+
+        document.getElementById('iaAuditBody').innerHTML = events.length ? events.slice(0, 20).map(e => `
+            <tr>
+                <td>${e.timestamp || e.created_at ? new Date(e.timestamp || e.created_at).toLocaleString() : '--'}</td>
+                <td><span class="panel-badge badge-blue">${e.event_type || '--'}</span></td>
+                <td>${e.action || e.description || '--'}</td>
+                <td>${e.module || '--'}</td>
+            </tr>`).join('') : '<tr><td colspan="4" style="color:var(--muted);">No audit events recorded</td></tr>';
+
+        document.getElementById('iaDataSources').innerHTML = Object.keys(dataSources).length ?
+            Object.entries(dataSources).map(([src, info]) => {
+                const status = typeof info === 'object' ? (info.status || 'unknown') : info;
+                const icon = status === 'available' || status === 'ok' ? '✅' : status === 'stale' ? '⚠️' : '❓';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(45,51,72,0.3);">
+                    <span>${icon}</span>
+                    <span style="flex:1;">${src.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span style="color:var(--muted);">${typeof info === 'object' ? (info.last_updated || '') : status}</span>
+                </div>`;
+            }).join('') : '<div style="color:var(--muted);font-size:12px;">No data source info</div>';
+
+        document.getElementById('iaScoreHistory').innerHTML = scoreHistory.length ?
+            scoreHistory.slice(0, 10).map(s => `
+                <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(45,51,72,0.3);">
+                    <span style="color:var(--muted);">${s.timestamp ? new Date(s.timestamp).toLocaleDateString() : '--'}</span>
+                    <span style="font-weight:700;color:${s.new_score <= 30 ? 'var(--green)' : s.new_score <= 60 ? 'var(--amber)' : 'var(--red)'};">${fmt(s.new_score, 0)}</span>
+                    ${s.old_score != null ? `<span style="color:var(--muted);">(was ${fmt(s.old_score, 0)})</span>` : ''}
+                </div>`).join('') : '<div style="color:var(--muted);font-size:12px;">No score history</div>';
+    }
+
+    // ─── IA SECTION 12: INSTITUTIONAL DUE DILIGENCE ──────────────────────────
+    function renderIADueDiligence(ddData) {
+        const loadEl  = document.getElementById('iaDDLoading');
+        const contEl  = document.getElementById('iaDDContent');
+        const errEl   = document.getElementById('iaDDError');
+        const badgeEl = document.getElementById('iaDDRecomBadge');
+
+        loadEl.style.display = 'none';
+
+        if (!ddData || ddData.error) {
+            errEl.style.display = 'block';
+            errEl.textContent = '⚠ Due diligence unavailable: ' + (ddData?.error || 'No data returned from engine.');
+            return;
+        }
+
+        contEl.style.display = 'block';
+
+        const icNote  = ddData.ic_note   || {};
+        const summary = icNote.summary   || {};
+        const ev      = ddData.evaluation || {};
+        const cls     = ddData.classification || {};
+
+        // ── Recommendation ──
+        const recom = summary.recommendation || ev.recommendation || '--';
+        const recomColors = { STRONG_BUY:'var(--green)', BUY:'#4ade80', HOLD:'var(--amber)', AVOID:'#f97316', REJECT:'var(--red)' };
+        const recomEl = document.getElementById('iaDDRecom');
+        recomEl.textContent = recom.replace('_', '\u00a0');
+        recomEl.style.color = recomColors[recom] || 'var(--muted)';
+        const badgeClass = (recom === 'STRONG_BUY' || recom === 'BUY') ? 'green' : recom === 'HOLD' ? 'amber' : 'red';
+        badgeEl.innerHTML = recom !== '--' ? `<span class="panel-badge badge-${badgeClass}">${recom}</span>` : '';
+
+        document.getElementById('iaDDClass').textContent = cls.bond_class || '';
+        const compScore = ev.composite_score ?? summary.composite_score ?? null;
+        document.getElementById('iaDDScore').textContent = compScore != null ? `Score: ${Number(compScore).toFixed(0)}/100` : '';
+
+        // ── Summary KV grid ──
+        document.getElementById('iaDDSummaryKV').innerHTML = kv([
+            ['Bond Class',     cls.bond_class || '--', 'blue'],
+            ['Rationale',      (cls.rationale || '--').substring(0, 40)],
+            ['Composite Score',compScore != null ? `${Number(compScore).toFixed(0)}/100` : '--',
+                compScore >= 70 ? 'green' : compScore >= 50 ? 'amber' : compScore != null ? 'red' : ''],
+            ['Mandate Regime', summary.compliance_regime || 'EPFO'],
+            ['DSCR',           ev.factor_scores?.repayment_mechanism?.dscr != null
+                ? fmt(ev.factor_scores.repayment_mechanism.dscr) : '--',
+                ev.factor_scores?.repayment_mechanism?.dscr < 1.1 ? 'red'
+                : ev.factor_scores?.repayment_mechanism?.dscr < 1.5 ? 'amber' : 'green'],
+            ['DD Signal',      ev.signal || summary.signal || '--',
+                ev.signal === 'STRONG' ? 'green' : ev.signal === 'WEAK' ? 'red' : ''],
+            ['Hard Blocks',    summary.hard_blocks ?? ev.hard_blocks ?? '--',
+                (summary.hard_blocks || ev.hard_blocks) > 0 ? 'red' : 'green'],
+            ['Soft Alerts',    summary.soft_alerts ?? ev.soft_alerts ?? '--',
+                (summary.soft_alerts || ev.soft_alerts) > 0 ? 'amber' : 'green'],
+        ]);
+
+        // ── 11-Factor DD scores ──
+        const factors = ev.factor_scores || {};
+        const factorDefs = [
+            ['nature_of_instrument',    'Nature of Instrument'],
+            ['government_support',      'Govt/Guarantor Support'],
+            ['financial_position',      'Financial Position'],
+            ['utilisation_of_proceeds', 'Use of Proceeds'],
+            ['repayment_mechanism',     'Repayment Mechanism'],
+            ['business_model',          'Business Model'],
+            ['financial_trend',         'Financial Trend'],
+            ['credit_rating',           'Credit Rating'],
+            ['default_history',         'Default History'],
+            ['legal_compliance',        'Legal & SEBI Compliance'],
+            ['risk_assessment',         'Risk Assessment'],
+        ];
+        document.getElementById('iaDDFactors').innerHTML = factorDefs.map(([key, label]) => {
+            const f     = factors[key] || {};
+            const score = f.score ?? null;
+            const col   = score >= 7 ? 'var(--green)' : score >= 5 ? 'var(--amber)' : score != null ? 'var(--red)' : 'var(--muted)';
+            const pct   = score != null ? (score / 10) * 100 : 0;
+            return `<div class="panel" style="padding:10px;">
+                <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${label}</div>
+                <div style="font-size:18px;font-weight:800;color:${col};">${score != null ? score + '/10' : '--'}</div>
+                <div style="background:#1e293b;height:4px;border-radius:2px;overflow:hidden;margin-top:6px;">
+                    <div style="width:${pct}%;height:100%;background:${col};border-radius:2px;"></div>
+                </div>
+                <div style="font-size:9px;color:var(--muted);margin-top:3px;">${(f.note || f.signal || '').substring(0, 55)}</div>
+            </div>`;
+        }).join('');
+
+        // ── IC Note 8 sections ──
+        const secs    = icNote.sections || {};
+        const secDefs = [
+            ['issuer_overview',    'Issuer Overview'],
+            ['bond_terms',         'Bond Terms'],
+            ['financial_analysis', 'Financial Analysis'],
+            ['credit_analysis',    'Credit Analysis'],
+            ['risk_assessment',    'Risk Assessment'],
+            ['security_structure', 'Security Structure'],
+            ['compliance_gates',   'Compliance Gates'],
+            ['recommendation',     'Recommendation'],
+        ];
+        document.getElementById('iaDDICNote').innerHTML = secDefs.map(([key, label]) => {
+            const sec     = secs[key] || {};
+            const entries = Object.entries(sec).filter(([k]) => !['_type','section_name'].includes(k));
+            return `<div class="panel" style="padding:10px;">
+                <div class="panel-title" style="font-size:11px;margin-bottom:6px;"><span class="icon">📄</span> ${label}</div>
+                ${entries.slice(0, 6).map(([k, v]) => {
+                    const disp = typeof v === 'object' ? JSON.stringify(v).substring(0, 50) : String(v ?? '').substring(0, 80);
+                    return `<div style="display:flex;gap:6px;font-size:11px;margin-bottom:2px;">
+                        <span style="color:var(--muted);min-width:100px;">${k.replace(/_/g,' ')}:</span>
+                        <span style="font-weight:600;">${disp || '--'}</span>
+                    </div>`;
+                }).join('') || '<div style="color:var(--muted);font-size:11px;">Loading…</div>'}
+            </div>`;
+        }).join('');
+
+        // ── Compliance gates ──
+        const gates = icNote.compliance_gates || summary.compliance_gates || [];
+        document.getElementById('iaDDGates').innerHTML = gates.length
+            ? gates.map(g => {
+                const ok          = g.passed !== false && g.status !== 'FAIL' && g.status !== 'HARD_BLOCK';
+                const borderColor = ok ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)';
+                return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px;background:var(--surface);border-radius:6px;border:1px solid ${borderColor};">
+                    <span style="font-size:16px;">${ok ? '✅' : '❌'}</span>
+                    <div>
+                        <div style="font-size:11px;font-weight:600;">${(g.gate || g.name || '--').replace(/_/g,' ')}</div>
+                        <div style="font-size:10px;color:var(--muted);">${g.detail || g.message || ''}</div>
+                    </div>
+                </div>`;
+            }).join('')
+            : '<div style="color:var(--muted);font-size:12px;">No compliance gate data</div>';
+    }
+
+    // ─── COMPARE TOOL ──────────────────────────────────────────
+    async function loadCompare() {
+        const isin1 = document.getElementById('compareIsin1').value.trim().toUpperCase();
+        const isin2 = document.getElementById('compareIsin2').value.trim().toUpperCase();
+        const status = document.getElementById('compareStatus');
+        if (!isin1 || !isin2) { status.textContent = '⚠ Please enter both ISINs.'; return; }
+        if (isin1 === isin2) { status.textContent = '⚠ ISINs must be different.'; return; }
+        status.textContent = '⏳ Comparing bonds… (this may take a few seconds)';
+        document.getElementById('compareResult').style.display = 'none';
+        try {
+            const data = await api(`/compare/${isin1}/${isin2}`);
+            if (!data || data.error) { status.textContent = `Error: ${data?.error || 'Unknown error'}`; return; }
+            status.textContent = '';
+            const n1 = data.bond1?.snapshot?.bond?.issuer_name || isin1;
+            const n2 = data.bond2?.snapshot?.bond?.issuer_name || isin2;
+            document.getElementById('compareName1').textContent = `${n1}`;
+            document.getElementById('compareName2').textContent = `${n2}`;
+
+            // summary is a flat array of {metric,unit,bond1,bond2,winner}
+            const summary = data.summary || [];
+            // Build comparison recommendation text
+            const b1wins = summary.filter(m => m.winner === isin1).length;
+            const b2wins = summary.filter(m => m.winner === isin2).length;
+            const betterOverall = b1wins > b2wins ? n1 : b2wins > b1wins ? n2 : 'Tie';
+            const ytmRow = summary.find(m => m.metric === 'YTM');
+            const ytmSpread = ytmRow && ytmRow.bond1 != null && ytmRow.bond2 != null ?
+                Math.abs((parseFloat(ytmRow.bond1) - parseFloat(ytmRow.bond2)) * 100).toFixed(0) : '--';
+            document.getElementById('compareSummary').innerHTML = `
+                <strong>Better Bond:</strong> ${betterOverall}&nbsp;&nbsp;|&nbsp;&nbsp;
+                <strong>YTM Spread:</strong> ${ytmSpread}bps&nbsp;&nbsp;|&nbsp;&nbsp;
+                <strong>Metrics Won:</strong> ${n1}: ${b1wins} vs ${n2}: ${b2wins}
+            `;
+
+            // Group metrics into sections
+            const groups = {
+                '📊 Core Metrics': ['Coupon Rate', 'YTM', 'Modified Duration', 'Clean Price', 'Issue Size (Cr)'],
+                '🏦 Issuer Info': ['Credit Rating', 'Issuer Type', 'Sector', 'Maturity', 'PF Eligible'],
+                '⚠️ Risk': ['Hidden Risk Score', 'Risk Score'],
+            };
+            const metricsDiv = document.getElementById('compareMetrics');
+            metricsDiv.innerHTML = '';
+            Object.entries(groups).forEach(([title, metricNames]) => {
+                const rows = summary.filter(m => metricNames.includes(m.metric));
+                if (!rows.length) return;
+                const secDiv = document.createElement('div');
+                secDiv.style.cssText = 'margin-bottom:16px;';
+                secDiv.innerHTML = `<h4 style="font-size:13px;color:var(--muted);margin-bottom:8px;">${title}</h4>`;
+                rows.forEach(m => {
+                    const row = document.createElement('div');
+                    row.className = 'compare-metric-row';
+                    const w1 = m.winner === isin1 ? 'compare-winner' : '';
+                    const w2 = m.winner === isin2 ? 'compare-winner' : '';
+                    const v1 = m.bond1 != null ? `${m.bond1}${m.unit ? ' '+m.unit : ''}` : '--';
+                    const v2 = m.bond2 != null ? `${m.bond2}${m.unit ? ' '+m.unit : ''}` : '--';
+                    row.innerHTML = `
+                        <div class="compare-metric-val left ${w1}">${v1}</div>
+                        <div class="compare-metric-label">${m.metric}</div>
+                        <div class="compare-metric-val right ${w2}">${v2}</div>
+                    `;
+                    secDiv.appendChild(row);
+                });
+                metricsDiv.appendChild(secDiv);
+            });
+            document.getElementById('compareResult').style.display = 'block';
+        } catch(e) { status.textContent = 'Error: ' + e.message; }
+    }
+
+    // ─── SANDBOX ───────────────────────────────────────────────
+    const sbxHistory = [];
+
+    function addToSandbox(isin) {
+        switchTabDirect('sandbox');
+        document.getElementById('sbxIsin').value = isin;
+        document.getElementById('sbxStatus').textContent = `ISIN ${isin} loaded. Set trade params and click Run Simulation.`;
+    }
+
+    function addToSandboxFromIA() {
+        const isin = document.getElementById('iaISIN').textContent;
+        if (isin) addToSandbox(isin);
+    }
+
+    async function runSandboxSimulation() {
+        const portfolio_id = document.getElementById('sbxPortfolio').value;
+        const isin = document.getElementById('sbxIsin').value.trim().toUpperCase();
+        const trade_type = document.getElementById('sbxTradeType').value;
+        const face_value_cr = parseFloat(document.getElementById('sbxFaceValue').value);
+        const status = document.getElementById('sbxStatus');
+        if (!isin) { status.textContent = '⚠ ISIN is required.'; return; }
+        if (!face_value_cr || face_value_cr <= 0) { status.textContent = '⚠ Please enter a valid face value.'; return; }
+        status.textContent = '⏳ Simulating trade…';
+        document.getElementById('sbxResult').style.display = 'none';
+        try {
+            const data = await apiPost('/sandbox/simulate', { portfolio_id, isin, trade_type, face_value_cr });
+            if (!data || data.error) { status.textContent = `Error: ${data?.error || 'Unknown error'}`; return; }
+            status.textContent = data.overall_status === 'PASS' ? '✅ Sandbox PASS — no hard compliance breaches' : '⚠ Sandbox FAIL — compliance issues detected';
+            const before = data.portfolio_before || {};
+            const after = data.portfolio_after || {};
+            const tradeInfo = data.trade || {};
+            const metrics = [
+                { label: 'Avg YTM', before: fmt(before.weighted_ytm), after: fmt(after.weighted_ytm), unit: '%' },
+                { label: 'Avg Duration', before: fmt(before.weighted_duration), after: fmt(after.weighted_duration), unit: 'Y' },
+                { label: 'Issuer Conc.', before: fmt(before.issuer_exposure_pct), after: fmt(after.issuer_exposure_pct), unit: '%' },
+                { label: 'Portfolio MV', before: `₹${fmt(before.total_mv_cr)} Cr`, after: `₹${fmt(after.total_mv_cr)} Cr`, unit: '' },
+            ];
+            document.getElementById('sbxImpactGrid').innerHTML = metrics.map(m => {
+                return `<div class="sandbox-impact-card">
+                    <div class="sandbox-impact-label">${m.label}</div>
+                    <div class="sandbox-impact-before">Before: ${m.before}${m.unit}</div>
+                    <div class="sandbox-impact-after">${m.after}${m.unit}</div>
+                </div>`;
+            }).join('');
+            const alerts = data.compliance_alerts || [];
+            document.getElementById('sbxAlerts').innerHTML = alerts.length ?
+                alerts.map(a => `<div style="padding:6px 10px;border-radius:6px;font-size:12px;margin-bottom:6px;background:rgba(251,191,36,0.08);border-left:3px solid ${a.type==='HARD_BREACH'?'var(--red)':'var(--amber)'};">
+                    <strong>${a.type}:</strong> ${a.message}</div>`).join('') :
+                '<div style="color:var(--green);font-size:12px;">✓ No compliance alerts</div>';
+            document.getElementById('sbxBondInfo').innerHTML = `
+                <div style="font-size:12px;line-height:1.8;">
+                    <div><strong>Issuer:</strong> ${tradeInfo.issuer_name || '--'}</div>
+                    <div><strong>Rating:</strong> ${tradeInfo.credit_rating || '--'}</div>
+                    <div><strong>YTM:</strong> ${fmt(tradeInfo.ytm)}%</div>
+                    <div><strong>Duration:</strong> ${fmt(tradeInfo.duration)}Y</div>
+                    <div><strong>Est. MV:</strong> ₹${fmt(tradeInfo.estimated_market_value_cr)} Cr</div>
+                </div>`;
+            document.getElementById('sbxResult').style.display = 'block';
+            sbxHistory.unshift({ ts: new Date().toLocaleTimeString(), isin, trade_type, face_value_cr, status: data.overall_status });
+            document.getElementById('sbxHistory').innerHTML = sbxHistory.slice(0, 8).map(h =>
+                `<div style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);margin-bottom:4px;font-family:monospace;font-size:11px;">${h.ts} — ${h.trade_type} ${h.face_value_cr} Cr of ${h.isin} [${h.status}]</div>`
+            ).join('');
+        } catch(e) { status.textContent = 'Error: ' + e.message; }
+    }
+
+    // ─── CREDIT MIGRATION ──────────────────────────────────────
+    async function loadCreditAlerts() {
+        const status = document.getElementById('cmStatus');
+        status.textContent = '⏳ Scanning all bonds for credit migration signals…';
+        document.getElementById('cmAlertsList').innerHTML = '';
+        document.getElementById('cmSummary').innerHTML = '';
+        try {
+            const data = await api('/credit-alerts');
+            if (!data || data.error) { status.textContent = `Error: ${data?.error || 'Unknown error'}`; return; }
+            status.textContent = '';
+            const alerts = data.alerts || [];
+            const counts = { CRITICAL: 0, WARNING: 0, STABLE: 0, POSITIVE: 0 };
+            alerts.forEach(a => { if (counts[a.risk_level] !== undefined) counts[a.risk_level]++; });
+            document.getElementById('cmSummary').innerHTML = [
+                { label: '🔴 Critical', key: 'CRITICAL', color: 'var(--red)' },
+                { label: '⚠️ Warning', key: 'WARNING', color: 'var(--amber)' },
+                { label: '✅ Stable', key: 'STABLE', color: 'var(--green)' },
+                { label: '📈 Positive', key: 'POSITIVE', color: 'var(--accent)' },
+            ].map(s => `<div style="background:var(--card);border-radius:8px;padding:14px;text-align:center;border:1px solid var(--border);">
+                <div style="font-size:22px;font-weight:800;color:${s.color};">${counts[s.key]}</div>
+                <div style="font-size:11px;color:var(--muted);">${s.label}</div>
+            </div>`).join('');
+            if (!alerts.length) {
+                document.getElementById('cmAlertsList').innerHTML = '<div style="color:var(--muted);font-size:13px;">No bonds found. Run scoring pipeline first.</div>';
+                return;
+            }
+            document.getElementById('cmAlertsList').innerHTML = alerts.map(a => `
+                <div class="migration-card ${a.risk_level}" onclick="openInvestAnalysis('${a.isin}')" style="cursor:pointer;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:14px;font-weight:700;">${a.issuer_name || a.isin}</div>
+                            <div style="font-size:11px;color:var(--muted);font-family:monospace;">${a.isin}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="panel-badge badge-blue">${a.current_rating || '--'}</span>
+                            <div style="font-size:11px;margin-top:4px;font-weight:700;color:${a.risk_level==='CRITICAL'?'var(--red)':a.risk_level==='WARNING'?'var(--amber)':'var(--green)'};">${a.risk_level}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:12px;line-height:1.7;">
+                        <strong>Downgrade Probability:</strong> ${(a.downgrade_probability * 100).toFixed(1)}%<br/>
+                        <strong>Signal Count:</strong> ${a.signal_count} | <strong>Spread:</strong> ${a.spread_warning ? '⚠ Widening' : '✓ Normal'}<br/>
+                        <strong>Signals:</strong> ${(a.signals || []).slice(0, 3).join(' • ')}
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) { status.textContent = 'Error: ' + e.message; }
+    }
+
+    // ─── BOND AGENT Q&A ────────────────────────────────────────
+    let currentAgentIsin = '';
+
+    async function askBondAgent() {
+        const input = document.getElementById('agentChatInput');
+        const query = input.value.trim();
+        if (!query) return;
+        const isin = document.getElementById('iaISIN').textContent;
+        if (!isin) { appendChatMsg('agent', 'Please open a bond first from Top 20 or Universe tab.'); return; }
+        appendChatMsg('user', query);
+        input.value = '';
+        input.disabled = true;
+        const typingId = appendChatMsg('agent', '⏳ Thinking…');
+        try {
+            const data = await apiPost('/agent/ask', { isin, question: query, context: {} });
+            removeTyping(typingId);
+            const html = `
+                <div>${data.answer || 'I couldn\'t find a specific answer for that.'}</div>
+                ${data.confidence ? `<div class="confidence">Confidence: ${data.confidence}</div>` : ''}
+                ${data.sources?.length ? `<div class="sources">Sources: ${data.sources.join(', ')}</div>` : ''}
+            `;
+            appendChatMsg('agent', html, true);
+        } catch(e) {
+            removeTyping(typingId);
+            appendChatMsg('agent', 'Error reaching Bond Agent: ' + e.message);
+        }
+        input.disabled = false;
+        input.focus();
+    }
+
+    function appendChatMsg(role, content, isHtml = false) {
+        const msgs = document.getElementById('agentChatMessages');
+        const div = document.createElement('div');
+        div.className = `chat-msg ${role}`;
+        const id = 'msg_' + Date.now();
+        div.id = id;
+        if (isHtml) div.innerHTML = content; else div.textContent = content;
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+        return id;
+    }
+
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    // ─── PDF EXPORT ────────────────────────────────────────────
+    async function exportPDF() {
+        const isin = document.getElementById('iaISIN').textContent;
+        if (!isin) { alert('Please open a bond first.'); return; }
+        try {
+            const res = await fetch(`${API}/investment-analysis/${isin}/pdf`);
+            if (!res.ok) throw new Error('Export failed');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a'); 
+            link.href = url; 
+            link.download = `Bond_IA_${isin}.pdf`;
+            document.body.appendChild(link); 
+            link.click(); 
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch(e) { alert('PDF export error: ' + e.message); }
+    }
+
+    // ─── GATEWAY PUSH ──────────────────────────────────────────
+    async function pushToGateway() {
+        const isin = document.getElementById('iaISIN').textContent;
+        if (!isin) { alert('Please open a bond first.'); return; }
+        const qty = prompt(`Push order to Gateway\n\nISIN: ${isin}\nEnter face value in Cr:`, '10');
+        if (!qty) return;
+        const orderType = confirm('BUY order? (Cancel for SELL)') ? 'BUY' : 'SELL';
+        try {
+            const data = await apiPost('/gateway/push-order', {
+                isin, order_type: orderType, face_value_cr: parseFloat(qty),
+                portfolio_id: 'default', urgency: 'NORMAL', notes: 'From Bond Intelligence Dashboard'
+            });
+            if (data.error) { alert('Gateway error: ' + data.error); return; }
+            alert(`✅ Order pushed!\n\nOrder ID: ${data.order_id}\nStatus: ${data.status}\nTrade Value: ₹${data.trade_value_cr} Cr`);
+        } catch(e) { alert('Gateway push error: ' + e.message); }
+    }
+
+    // ─── HELPERS ───────────────────────────────────────────────
+    function switchTabDirect(name) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section-tab').forEach(s => s.classList.remove('active'));
+        const tabBtn = document.querySelector(`.tab[onclick*="${name}"]`);
+        if (tabBtn) tabBtn.classList.add('active');
+        const el = document.getElementById('tab-' + name);
+        if (el) el.classList.add('active');
+    }
+
+    async function apiPost(path, body) {
+        const res = await fetch(API + path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return res.json();
+    }
+
+    // ─── INIT ───────────────────────────────────────────────────
+    refreshAll();
+    </script>
+</body>
+</html>

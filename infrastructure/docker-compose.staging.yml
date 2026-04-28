@@ -1,0 +1,217 @@
+# ══════════════════════════════════════════════════════════════════════
+# PF Trust — Staging Environment Docker Compose
+# ══════════════════════════════════════════════════════════════════════
+#
+# Purpose: Mirror production topology for pre-deployment validation.
+# Uses the same images and configs as production but with:
+#   - Isolated network (staging_net)
+#   - Different port bindings (offset +1000)
+#   - Staging-specific env overrides
+#   - Resource limits matching production
+#
+# Usage:
+#   docker compose -f docker-compose.staging.yml up -d
+#   docker compose -f docker-compose.staging.yml run --rm smoke-test
+#   docker compose -f docker-compose.staging.yml down -v
+#
+# IMPORTANT: Run the full staging stack and smoke tests BEFORE every
+# production deploy. See DEPLOYMENT_CHECKLIST.md for the full process.
+# ══════════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+networks:
+  staging_net:
+    driver: bridge
+
+volumes:
+  staging_redis_data:
+
+x-app-base: &app-base
+  build:
+    context: ..
+    dockerfile: infrastructure/Dockerfile
+  networks: [staging_net]
+  restart: "no"
+  environment:
+    LOG_JSON: "1"
+    LOG_LEVEL: DEBUG
+    PYTHONPATH: /app
+    ENVIRONMENT: staging
+    REDIS_REQUIRED: "true"
+  security_opt:
+    - no-new-privileges:true
+  deploy:
+    resources:
+      limits:
+        cpus: "2.0"
+        memory: 1024M
+      reservations:
+        cpus: "0.25"
+        memory: 256M
+
+services:
+  # ── Redis (Staging) ─────────────────────────────────────────────────
+  redis-staging:
+    image: redis:7-alpine
+    container_name: staging_redis
+    networks: [staging_net]
+    restart: "no"
+    volumes:
+      - staging_redis_data:/data
+    command: >
+      redis-server --appendonly yes
+      --maxmemory 256mb --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    ports:
+      - "127.0.0.1:7379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Compliance Engine (Staging: port 9100) ──────────────────────────
+  compliance-staging:
+    <<: *app-base
+    container_name: staging_compliance
+    env_file: [compliance_engine/.env]
+    environment:
+      PYTHONPATH: /app/Private3
+      ENVIRONMENT: staging
+    ports:
+      - "127.0.0.1:9100:8100"
+    command: >
+      sh -c "cd /app/Private3/compliance_engine &&
+             uvicorn main:app --host 0.0.0.0 --port 8100"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ── Bond Intelligence (Staging: port 9500) ──────────────────────────
+  bond-intel-staging:
+    <<: *app-base
+    container_name: staging_bond_intelligence
+    ports:
+      - "127.0.0.1:9500:8500"
+    command: >
+      sh -c "cd /app/Private3 &&
+             python -m uvicorn bond_intelligence.main:app --host 0.0.0.0 --port 8500"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Bond Quote System (Staging: port 9000 → internal 8000) ──────────
+  bond-quotes-staging:
+    <<: *app-base
+    container_name: staging_bond_quote_system
+    ports:
+      - "127.0.0.1:9001:8000"
+    command: >
+      sh -c "cd /app/Private3 &&
+             python -m uvicorn bond_quote_system.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Institutional FIS (Staging: port 9600) ──────────────────────────
+  inst-fis-staging:
+    <<: *app-base
+    container_name: staging_institutional_fis
+    ports:
+      - "127.0.0.1:9600:8600"
+    command: >
+      sh -c "cd /app/Private3 &&
+             python -m uvicorn institutional_fis.main:app --host 0.0.0.0 --port 8600"
+
+  # ── Investment Engine (Staging: port 9900) ──────────────────────────
+  investment-eng-staging:
+    <<: *app-base
+    container_name: staging_investment_engine
+    ports:
+      - "127.0.0.1:9900:8900"
+    environment:
+      BOND_INTELLIGENCE_URL: http://bond-intel-staging:8500
+      COMPLIANCE_ENGINE_URL: http://compliance-staging:8100
+      BOND_QUOTE_URL:        http://bond-quotes-staging:8000
+      INSTITUTIONAL_FIS_URL: http://inst-fis-staging:8600
+      UNIFIED_GATEWAY_URL:   http://gateway-staging:9000
+    command: >
+      sh -c "cd /app/Private3/investment_engine &&
+             uvicorn main:app --host 0.0.0.0 --port 8900"
+    depends_on:
+      compliance-staging:
+        condition: service_healthy
+      bond-intel-staging:
+        condition: service_healthy
+
+  # ── Gateway (Staging: port 10000) ───────────────────────────────────
+  gateway-staging:
+    <<: *app-base
+    container_name: staging_gateway
+    env_file: [unified_gateway/.env]
+    ports:
+      - "127.0.0.1:10000:9000"
+    environment:
+      COMPLIANCE_ENGINE_URL: http://compliance-staging:8100
+      BOND_INTELLIGENCE_URL: http://bond-intel-staging:8500
+      BOND_QUOTE_URL:        http://bond-quotes-staging:8000
+      REDIS_URL:             redis://:${REDIS_PASSWORD:?}@redis-staging:6379/0
+      REDIS_REQUIRED:        "true"
+      ENVIRONMENT:           staging
+      LOG_JSON: "1"
+    volumes:
+      - ./backend/app/data:/app/backend/app/data
+    command: >
+      sh -c "python -m uvicorn backend.main:app --host 0.0.0.0 --port 9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 25s
+
+  # ── Smoke Test Runner ───────────────────────────────────────────────
+  smoke-test:
+    <<: *app-base
+    container_name: staging_smoke_test
+    depends_on:
+      gateway-staging:
+        condition: service_healthy
+    entrypoint: ["python", "-c"]
+    command:
+      - |
+        import requests, sys, json
+        base = "http://gateway-staging:9000"
+        checks = [
+            ("Health", f"{base}/api/v1/health"),
+            ("Docs", f"{base}/docs"),
+        ]
+        failures = []
+        for name, url in checks:
+            try:
+                r = requests.get(url, timeout=15)
+                if r.status_code < 400:
+                    print(f"  PASS  {name}: {r.status_code}")
+                else:
+                    print(f"  FAIL  {name}: {r.status_code}")
+                    failures.append(name)
+            except Exception as e:
+                print(f"  FAIL  {name}: {e}")
+                failures.append(name)
+        if failures:
+            print(f"\n STAGING SMOKE TEST FAILED: {failures}")
+            sys.exit(1)
+        print("\n ALL STAGING SMOKE TESTS PASSED")
+    restart: "no"

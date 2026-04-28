@@ -1,0 +1,139 @@
+# ──────────────────────────────────────────────────
+# PF Trust — Root .gitignore for Private3
+# ──────────────────────────────────────────────────
+
+# Environment / secrets — NEVER commit these
+.env
+**/.env
+*.env
+.env.secrets
+**/.env.secrets
+.env.local
+**/.env.local
+
+# SSL certificates — NEVER commit private keys
+nginx/ssl/
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+
+# Python bytecode
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Exported data
+*.sqlite_export.json
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# IDE / OS
+.vscode/
+.idea/
+.pytest_cache/
+*.DS_Store
+Thumbs.db
+
+# Report output
+reports/output/
+**/reports/output/
+
+# Google OAuth tokens (NEVER commit)
+token.json
+**/token.json
+client_secret_*.json
+email_config.json
+
+# Generated artifacts and reports
+*.pdf
+*.xlsx
+*.jsonl
+*_raw_results.json
+*_results.json
+*_report.json
+*_rating_update_report.json
+*_log*.txt
+*_out*.txt
+*_err*.txt
+*_live*.txt
+*_restart*.txt
+tmp_*.py
+
+# Generated output directories
+/reports/
+/bond_quote_system/reports/
+/bond_intelligence/reports/
+/investment_engine/reports/
+/data/
+/backups/
+/backup_evidence/
+/test-results/
+
+# Generated report and deliverable docs
+board_pack/
+AGENT_AUDIT_REPORT.md
+AUDIT_SECTION5_SECTION6_REPORT.md
+BOND_ALLOCATION_VALIDATION_REPORT_2026-03-21.md
+Bond_Information_Report_India.md
+Bond_Prices_India.md
+CODEBASE_AUDIT_REPORT.md
+Comprehensive_Bond_Market_Report_India.md
+FORENSIC_AUDIT_REPORT_FINAL.md
+IMPLEMENTATION_REPORT_2026-03-04.md
+IMPLEMENTATION_REPORT_2026-03-21.md
+Improvement_Report_20Feb26.md
+INSTITUTIONAL_AUDIT_CERTIFICATION_2026-03-03.md
+INSTITUTIONAL_DUE_DILIGENCE_AUDIT_2026-03-04.md
+INSTITUTIONAL_QA_AUDIT_2026-03-15.md
+INSTITUTIONAL_READINESS_ASSESSMENT.md
+ISO_27001_GAP_ASSESSMENT.md
+MATH_EQUATIONS.md
+MULTI_REGION_DR_PLAN.md
+PERFORMANCE_BENCHMARK_REPORT_v1.md
+PHASE2_GAP_REPORT_2026-03-15.md
+PORTFOLIO_FORMULAS_NON_TECH.md
+PRODUCTION_READINESS_AUDIT_2026-03-03.md
+PRODUCTION_READINESS_FINAL_2026-03-03.md
+RED_TEAM_ADVERSARIAL_REPORT.md
+SECURITY_VALIDATION_REPORT_v1.md
+SOC2_READINESS_ASSESSMENT.md
+TIER1_DOMINANCE_CERTIFICATION_2026-03-03.md
+investment_engine/FORENSIC_AUDIT_REPORT.md
+investment_engine/SYSTEM_AUDIT_REPORT.md
+investment_engine/SYSTEM_AUDIT_REPORT_v1_20260222.md
+unified_gateway/AUDIT_REPORT.md
+bond_intelligence/reports/sample_report_20Feb2026.md
+EXECUTIVE_SUMMARY_ONE_PAGE.html
+INSTITUTIONAL_READINESS_v2.html
+ROLLOUT_STRATEGY_v2.html
+SECURITY_OVERVIEW_ONE_PAGE.html
+TRUSTEE_PRESENTATION_DECK_v2.html
+TRUSTEE_QA_v2.html
+admin_dashboard.html
+executive_summary.html
+rollout_strategy.html
+security_overview.html
+trustee_presentation.html
+trustee_qa.html
+bond_intelligence/investment_analysis.html
+
+# Alembic (generated migration versions are OK to commit; pyc is not)
+*.pyc

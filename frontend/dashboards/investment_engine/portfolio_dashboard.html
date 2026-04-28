@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Voltas PF Trust — Portfolio Dashboard</title>
+<style>
+/* ── Reset & Base ── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh}
+
+/* ── Top Header ── */
+.topbar{background:linear-gradient(135deg,#1e3a5f 0%,#1a4071 50%,#1e4d8c 100%);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #2563eb;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.topbar-left h1{font-size:20px;font-weight:700;color:#fff;letter-spacing:.3px}
+.topbar-left p{font-size:12px;color:#93c5fd;margin-top:2px}
+.topbar-right{display:flex;gap:10px;align-items:center}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8;transform:translateY(-1px)}
+.btn-secondary{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.btn-secondary:hover{background:#334155;color:#e2e8f0}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Stats Bar ── */
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:20px 32px;background:#0f172a}
+.stat-card{background:linear-gradient(135deg,#1e293b,#162032);border:1px solid #1e3a5f;border-radius:12px;padding:16px;text-align:center}
+.stat-card .val{font-size:22px;font-weight:700;color:#38bdf8}
+.stat-card .lbl{font-size:11px;color:#64748b;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.stat-card.green .val{color:#22c55e}
+.stat-card.orange .val{color:#f59e0b}
+.stat-card.purple .val{color:#a78bfa}
+.stat-card.pink .val{color:#ec4899}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid #1e293b;padding:0 32px;background:#0f172a}
+.tab{padding:12px 22px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;user-select:none}
+.tab:hover{color:#94a3b8}
+.tab.active{color:#38bdf8;border-bottom-color:#38bdf8}
+.badge{background:#334155;color:#94a3b8;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:6px}
+.tab.active .badge{background:#1d3a5e;color:#38bdf8}
+
+/* ── Content ── */
+.content{padding:20px 32px;max-width:100%}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1;min-width:200px;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 14px;border-radius:8px;font-size:13px;outline:none}
+.search-box:focus{border-color:#2563eb}
+.filter-select{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer;outline:none}
+.filter-select:focus{border-color:#2563eb}
+.count-label{font-size:12px;color:#64748b;white-space:nowrap}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1e293b}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#162032}
+th{padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:600;white-space:nowrap;border-bottom:1px solid #1e293b}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:#94a3b8}
+td{padding:10px 12px;border-bottom:1px solid #0f172a;vertical-align:middle}
+tbody tr:hover{background:#1a2744}
+tbody tr:last-child td{border-bottom:none}
+
+/* Badges */
+.badge-cat{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;text-transform:uppercase}
+.cat-gsec{background:#164e63;color:#67e8f9}
+.cat-sdl{background:#1c3a28;color:#86efac}
+.cat-psu{background:#2d1b69;color:#c4b5fd}
+.cat-bank{background:#1e3a5f;color:#93c5fd}
+.cat-corp{background:#431407;color:#fdba74}
+
+.badge-quote{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600}
+.has-quote{background:#14532d;color:#86efac}
+.no-quote{background:#1f1f1f;color:#4b5563}
+
+.rating-chip{display:inline-block;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:700}
+.r-aaa{background:#14532d;color:#86efac}
+.r-aaplus{background:#193440;color:#67e8f9}
+.r-aa{background:#1e3047;color:#93c5fd}
+.r-sovereign{background:#2d1b69;color:#c4b5fd}
+.r-na{background:#1e1e2e;color:#4b5563}
+
+.numeric{text-align:right;font-family:'Courier New',monospace;font-size:12px;color:#94a3b8}
+
+/* ── Analysis Panel ── */
+.match-section{margin-bottom:24px}
+.section-title{font-size:14px;font-weight:600;color:#38bdf8;margin-bottom:10px;border-bottom:1px solid #1e293b;padding-bottom:8px}
+.match-card{background:#1e293b;border:1px solid #234;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:8px}
+.match-card h4{font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:4px}
+.match-card .meta{font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;gap:8px}
+.match-card .meta span{background:#0f172a;padding:2px 8px;border-radius:4px}
+.quote-row{background:#0f172a;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;display:flex;flex-wrap:wrap;gap:10px;color:#94a3b8}
+.quote-row strong{color:#e2e8f0}
+
+/* ── Loading / Error ── */
+.loading-state{text-align:center;padding:60px;color:#64748b}
+.loading-state .icon{font-size:40px;margin-bottom:12px}
+.error-banner{background:#7f1d1d;border:1px solid #991b1b;color:#fca5a5;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.success-banner{background:#14532d;border:1px solid #166534;color:#86efac;padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:14px}
+
+/* ── Pagination ── */
+.pagination{display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.page-btn{padding:6px 12px;background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:6px;cursor:pointer;font-size:12px}
+.page-btn:hover{background:#2563eb;color:#fff;border-color:#2563eb}
+.page-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .topbar{padding:14px 16px;flex-direction:column;gap:10px}
+  .stats-bar{grid-template-columns:repeat(2,1fr);padding:14px 16px}
+  .content{padding:14px 16px}
+  .tabs{padding:0 16px;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>🏛️ Voltas PF Trust — Portfolio &amp; Broker Quotes</h1>
+    <p id="fund-period">Investment Register • Loading...</p>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-secondary" onclick="openDocs()">📖 API Docs</button>
+    <button class="btn btn-primary" id="refreshBtn" onclick="loadAll()">
+      <span id="refreshIcon">🔄</span> Refresh Data
+    </button>
+  </div>
+</div>
+
+<!-- ── Stats ── -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="val" id="stat-holdings">—</div>
+    <div class="lbl">Portfolio Bonds</div>
+  </div>
+  <div class="stat-card green">
+    <div class="val" id="stat-face-value">—</div>
+    <div class="lbl">Face Value (Cr)</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="val" id="stat-book-value">—</div>
+    <div class="lbl">Book Value (Cr)</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="val" id="stat-pdf-quotes">—</div>
+    <div class="lbl">PDF Quotes Found</div>
+  </div>
+  <div class="stat-card pink">
+    <div class="val" id="stat-matched">—</div>
+    <div class="lbl">Portfolio Matched</div>
+  </div>
+  <div class="stat-card">
+    <div class="val" id="stat-pdfs">—</div>
+    <div class="lbl">PDFs Scanned</div>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('holdings',this)">
+    📋 Portfolio Holdings <span class="badge" id="tab-holdings-count">0</span>
+  </div>
+  <div class="tab" onclick="switchTab('quotes',this)">
+    📄 Broker Quotes (PDFs) <span class="badge" id="tab-quotes-count">0</span>
+  </div>
+  <div class="tab" onclick="switchTab('analysis',this)">
+    🔍 Matched Analysis <span class="badge" id="tab-analysis-count">0</span>
+  </div>
+</div>
+
+<!-- ── Content ── -->
+<div class="content">
+
+  <!-- Holdings Panel -->
+  <div class="panel active" id="panel-holdings">
+    <div id="error-holdings"></div>
+    <div class="toolbar">
+      <input class="search-box" id="search-holdings" placeholder="🔍 Search ISIN, issuer, bond name..." oninput="filterHoldings()"/>
+      <select class="filter-select" id="cat-holdings" onchange="filterHoldings()">
+        <option value="">All Categories</option>
+        <option value="G-Sec">G-Sec</option>
+        <option value="SDL">SDL</option>
+        <option value="PSU">PSU</option>
+        <option value="Bank">Bank</option>
+        <option value="Corporate">Corporate</option>
+      </select>
+      <select class="filter-select" id="quote-filter" onchange="filterHoldings()">
+        <option value="">All Bonds</option>
+        <option value="yes">Has Quote</option>
+        <option value="no">No Quote</option>
+      </select>
+      <span class="count-label" id="holdings-count-label"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="holdings-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="sortable" onclick="sortHoldings('bond_name')">Bond Name ⇅</th>
+            <th>ISIN</th>
+            <th>Issuer</th>
+            <th class="sortable" onclick="sortHoldings('category')">Category ⇅</th>
+            <th class="sortable numeric" onclick="sortHoldings('coupon_rate')">Coupon% ⇅</th>
+            <th>Purchase</th>
+            <th class="sortable" onclick="sortHoldings('maturity_date')">Maturity ⇅</th>
+            <th>Call/Put</th>
+            <th class="numeric sortable" onclick="sortHoldings('face_value_total')">Face Value ⇅</th>
+            <th class="numeric sortable" onclick="sortHoldings('book_value_total')">Book Value ⇅</th>
+            <th>Quotes</th>
+          </tr>
+        </thead>
+        <tbody id="holdings-tbody">
+          <tr><td colspan="12" class="loading-state">
+            <div class="icon">⏳</div>Loading portfolio holdings...
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="holdings-pagination"></div>
+  </div>
+
+  <!-- Quotes Panel -->
+  <div class="panel" id="panel-quotes">
+    <div id="error-quotes"></div>
+    <div class="toolbar">
+      <input class="search-box" id="search-quotes" placeholder="🔍 Search ISIN, bond name, source..." oninput="filterQuotes()"/>
+      <select class="filter-select" id="cat-quotes" onchange="filterQuotes()">
+        <option value="">All Categories</option>
+        <option value="SDL">SDL</option>
+        <option value="PSU">PSU</option>
+        <option value="PVT">Corporate (PVT)</option>
+      </select>
+      <select class="filter-select" id="source-quotes" onchange="filterQuotes()">
+        <option value="">All PDFs</option>
+      </select>
+      <span class="count-label" id="quotes-count-label"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="quotes-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ISIN</th>
+            <th>Bond / Security</th>
+            <th>Category</th>
+            <th class="numeric">Coupon%</th>
+            <th class="numeric">Price</th>
+            <th class="numeric">YTM%</th>
+            <th>Rating</th>
+            <th>Maturity</th>
+            <th>Available (Lakhs)</th>
+            <th>Source PDF</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody id="quotes-tbody">
+          <tr><td colspan="12" class="loading-state">
+            <div class="icon">⏳</div>Loading broker quotes...
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="quotes-pagination"></div>
+  </div>
+
+  <!-- Analysis Panel -->
+  <div class="panel" id="panel-analysis">
+    <div id="error-analysis"></div>
+    <div class="toolbar">
+      <input class="search-box" id="search-analysis" placeholder="🔍 Filter matched bonds..." oninput="filterAnalysis()"/>
+      <select class="filter-select" id="cat-analysis" onchange="filterAnalysis()">
+        <option value="">All Categories</option>
+        <option value="G-Sec">G-Sec</option>
+        <option value="SDL">SDL</option>
+        <option value="PSU">PSU</option>
+        <option value="Bank">Bank</option>
+        <option value="Corporate">Corporate</option>
+      </select>
+      <span class="count-label" id="analysis-count-label"></span>
+    </div>
+    <div id="analysis-content">
+      <div class="loading-state">
+        <div class="icon">⏳</div>
+        <div>Loading analysis...</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ── Config ──────────────────────────────────────────────────
+const API = '/api';
+const PAGE_SIZE = 50;
+
+// ── State ────────────────────────────────────────────────────
+let holdingsData = [];
+let holdingsFiltered = [];
+let holdingsPage = 1;
+
+let quotesData = [];
+let quotesFiltered = [];
+let quotesPage = 1;
+
+let analysisData = [];
+let analysisFiltered = [];
+
+// ── Tabs ────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Format helpers ──────────────────────────────────────────
+function fmtCr(val) {
+  if (!val) return '—';
+  const cr = val / 1e7;
+  if (cr >= 1000) return (cr/1000).toFixed(1) + 'K Cr';
+  return cr.toFixed(1) + ' Cr';
+}
+function fmtLakh(val) {
+  if (!val) return '—';
+  return (val/1e5).toFixed(1) + ' L';
+}
+function catBadge(cat) {
+  const map = {
+    'G-Sec': 'cat-gsec', 'SDL': 'cat-sdl', 'PSU': 'cat-psu',
+    'Bank': 'cat-bank', 'Corporate': 'cat-corp', 'PVT': 'cat-corp'
+  };
+  const cls = map[cat] || 'cat-corp';
+  return `<span class="badge-cat ${cls}">${cat||'—'}</span>`;
+}
+function ratingBadge(r) {
+  if (!r) return '<span class="rating-chip r-na">—</span>';
+  r = r.toString().trim();
+  if (r.includes('AAA')) return `<span class="rating-chip r-aaa">${r}</span>`;
+  if (r.includes('AA+')) return `<span class="rating-chip r-aaplus">${r}</span>`;
+  if (r.includes('AA')) return `<span class="rating-chip r-aa">${r}</span>`;
+  if (r === 'N.A' || r === 'Sovereign') return `<span class="rating-chip r-sovereign">Sovereign</span>`;
+  return `<span class="rating-chip r-na">${r}</span>`;
+}
+function isinLink(isin) {
+  if (!isin) return '—';
+  return `<a href="https://www.nseindia.com/market-data/bonds-traded?type=Corporate&isin=${isin}" target="_blank" style="color:#38bdf8;text-decoration:none;font-family:monospace;font-size:11px">${isin}</a>`;
+}
+
+// ── Sort state ───────────────────────────────────────────────
+let holdingsSort = {col: 'maturity_date', dir: 1};
+function sortHoldings(col) {
+  if (holdingsSort.col === col) holdingsSort.dir *= -1;
+  else { holdingsSort.col = col; holdingsSort.dir = 1; }
+  holdingsFiltered.sort((a, b) => {
+    let va = a[col], vb = b[col];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    return holdingsSort.dir * (va > vb ? 1 : va < vb ? -1 : 0);
+  });
+  holdingsPage = 1;
+  renderHoldings();
+}
+
+// ── Load all ─────────────────────────────────────────────────
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.disabled = true;
+  icon.classList.add('spin');
+
+  try {
+    await Promise.all([loadPortfolio(), loadQuotes()]);
+    buildAnalysis();
+  } finally {
+    btn.disabled = false;
+    icon.classList.remove('spin');
+  }
+}
+
+// ── Portfolio ─────────────────────────────────────────────────
+async function loadPortfolio() {
+  clearError('error-holdings');
+  try {
+    const r = await fetch(`${API}/portfolio`);
+    const data = await r.json();
+    if (data.error) { showError('error-holdings', data.error); return; }
+
+    document.getElementById('fund-period').textContent =
+      (data.fund_name || '') + ' • ' + (data.period || '');
+    document.getElementById('stat-holdings').textContent = data.total_holdings || '—';
+    document.getElementById('stat-face-value').textContent = fmtCr(data.total_face_value);
+    document.getElementById('stat-book-value').textContent = fmtCr(data.total_book_value);
+    document.getElementById('tab-holdings-count').textContent = data.total_holdings || 0;
+
+    holdingsData = data.holdings || [];
+    // Add has_quote marker (will be updated after analysis)
+    holdingsData.forEach(h => { if (h.has_quote === undefined) h.has_quote = false; });
+    holdingsFiltered = [...holdingsData];
+    holdingsPage = 1;
+    renderHoldings();
+  } catch (e) {
+    showError('error-holdings', 'Failed to load portfolio: ' + e.message);
+  }
+}
+
+// ── Quotes ────────────────────────────────────────────────────
+async function loadQuotes() {
+  clearError('error-quotes');
+  try {
+    const r = await fetch(`${API}/broker-quotes`);
+    const data = await r.json();
+    if (data.error) { showError('error-quotes', data.error); return; }
+
+    document.getElementById('stat-pdf-quotes').textContent = data.total_quotes || 0;
+    document.getElementById('stat-pdfs').textContent = data.files_scanned || 0;
+    document.getElementById('tab-quotes-count').textContent = data.total_quotes || 0;
+
+    quotesData = data.quotes || [];
+    quotesFiltered = [...quotesData];
+    quotesPage = 1;
+
+    // Populate source filter
+    const sources = [...new Set(quotesData.map(q => q.source_file))].sort();
+    const sel = document.getElementById('source-quotes');
+    sel.innerHTML = '<option value="">All PDFs</option>' +
+      sources.map(s => `<option value="${s}">${s}</option>`).join('');
+
+    renderQuotes();
+  } catch (e) {
+    showError('error-quotes', 'Failed to load quotes: ' + e.message);
+  }
+}
+
+// ── Render Holdings ──────────────────────────────────────────
+function filterHoldings() {
+  const q = document.getElementById('search-holdings').value.toLowerCase();
+  const cat = document.getElementById('cat-holdings').value;
+  const qf = document.getElementById('quote-filter').value;
+  holdingsFiltered = holdingsData.filter(h => {
+    if (cat && h.category !== cat) return false;
+    if (qf === 'yes' && !h.has_quote) return false;
+    if (qf === 'no' && h.has_quote) return false;
+    if (q) {
+      const txt = [h.bond_name, h.issuer, h.isin, h.category].join(' ').toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    return true;
+  });
+  holdingsPage = 1;
+  renderHoldings();
+}
+
+function renderHoldings() {
+  const tbody = document.getElementById('holdings-tbody');
+  const total = holdingsFiltered.length;
+  const start = (holdingsPage - 1) * PAGE_SIZE;
+  const rows = holdingsFiltered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('holdings-count-label').textContent =
+    `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} bonds`;
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#64748b">No bonds match the filter</td></tr>';
+    renderPagination('holdings-pagination', total, holdingsPage, p => { holdingsPage=p; renderHoldings(); });
+    return;
+  }
+
+  tbody.innerHTML = rows.map((h, i) => {
+    const qBadge = h.has_quote
+      ? `<span class="badge-quote has-quote">✅ ${h.quotes?.length||1} quote</span>`
+      : `<span class="badge-quote no-quote">—</span>`;
+    const callPut = [h.call_date && `C: ${h.call_date}`, h.put_date && `P: ${h.put_date}`]
+      .filter(Boolean).join('<br>') || '—';
+    const fv = h.face_value_total >= 1e7 ? fmtCr(h.face_value_total) : '₹' + h.face_value_total?.toLocaleString('en-IN') || '—';
+    const bv = h.book_value_total >= 1e7 ? fmtCr(h.book_value_total) : '₹' + h.book_value_total?.toLocaleString('en-IN') || '—';
+    return `<tr>
+      <td style="color:#4b5563">${start+i+1}</td>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${h.bond_name}">${h.bond_name||'—'}</td>
+      <td>${isinLink(h.isin)}</td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#94a3b8;font-size:11px" title="${h.issuer}">${h.issuer||'—'}</td>
+      <td>${catBadge(h.category)}</td>
+      <td class="numeric">${h.coupon_rate ? h.coupon_rate.toFixed(2)+'%' : '—'}</td>
+      <td style="font-size:11px;color:#64748b">${h.purchase_date||'—'}</td>
+      <td style="font-size:11px;color:#94a3b8">${h.maturity_date||'—'}</td>
+      <td style="font-size:10px;color:#64748b">${callPut}</td>
+      <td class="numeric">${fv}</td>
+      <td class="numeric">${bv}</td>
+      <td>${qBadge}</td>
+    </tr>`;
+  }).join('');
+
+  renderPagination('holdings-pagination', total, holdingsPage, p => { holdingsPage=p; renderHoldings(); });
+}
+
+// ── Render Quotes ────────────────────────────────────────────
+function filterQuotes() {
+  const q = document.getElementById('search-quotes').value.toLowerCase();
+  const cat = document.getElementById('cat-quotes').value;
+  const src = document.getElementById('source-quotes').value;
+  quotesFiltered = quotesData.filter(qt => {
+    if (cat && !qt.category?.includes(cat)) return false;
+    if (src && qt.source_file !== src) return false;
+    if (q) {
+      const txt = [qt.isin, qt.bond_name, qt.source_file, qt.rating].join(' ').toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    return true;
+  });
+  quotesPage = 1;
+  renderQuotes();
+}
+
+function renderQuotes() {
+  const tbody = document.getElementById('quotes-tbody');
+  const total = quotesFiltered.length;
+  const start = (quotesPage - 1) * PAGE_SIZE;
+  const rows = quotesFiltered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('quotes-count-label').textContent =
+    `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} quotes`;
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:30px;color:#64748b">No quotes match the filter</td></tr>';
+    renderPagination('quotes-pagination', total, quotesPage, p => { quotesPage=p; renderQuotes(); });
+    return;
+  }
+
+  tbody.innerHTML = rows.map((q, i) => {
+    const inPortfolio = holdingsData.some(h => h.isin === q.isin);
+    return `<tr style="${inPortfolio ? 'background:#0f2a1a' : ''}">
+      <td style="color:#4b5563">${start+i+1}</td>
+      <td>
+        ${isinLink(q.isin)}
+        ${inPortfolio ? '<br><span style="font-size:9px;color:#22c55e">★ In Portfolio</span>' : ''}
+      </td>
+      <td style="max-width:220px;font-size:11px;color:#94a3b8" title="${q.bond_name}">${q.bond_name||'—'}</td>
+      <td>${catBadge(q.category||'—')}</td>
+      <td class="numeric">${q.coupon_rate ? q.coupon_rate.toFixed(4)+'%' : '—'}</td>
+      <td class="numeric" style="color:#38bdf8">${q.price != null ? q.price.toFixed(2) : '—'}</td>
+      <td class="numeric" style="color:#22c55e">${q.ytm != null ? Number(q.ytm).toFixed(2)+'%' : '—'}</td>
+      <td>${ratingBadge(q.rating)}</td>
+      <td style="font-size:11px;color:#64748b">${q.maturity_date||'—'}</td>
+      <td class="numeric">${q.available_lakhs||'—'}</td>
+      <td style="font-size:10px;color:#64748b">${q.source_file||'—'}</td>
+      <td><span style="font-size:9px;background:#1e293b;padding:2px 5px;border-radius:4px;color:#64748b">${q.source_type||'—'}</span></td>
+    </tr>`;
+  }).join('');
+
+  renderPagination('quotes-pagination', total, quotesPage, p => { quotesPage=p; renderQuotes(); });
+}
+
+// ── Build Analysis ────────────────────────────────────────────
+function buildAnalysis() {
+  // Cross-ref: portfolio bonds that have matching quotes
+  const quoteMap = {};
+  quotesData.forEach(q => {
+    if (q.isin) {
+      if (!quoteMap[q.isin]) quoteMap[q.isin] = [];
+      quoteMap[q.isin].push(q);
+    }
+  });
+
+  // Update has_quote on holdings
+  holdingsData.forEach(h => {
+    h.has_quote = !!(quoteMap[h.isin] && quoteMap[h.isin].length);
+    h.quotes = quoteMap[h.isin] || [];
+  });
+
+  analysisData = holdingsData.filter(h => h.has_quote);
+  analysisFiltered = [...analysisData];
+
+  const matched = analysisData.length;
+  document.getElementById('stat-matched').textContent = matched;
+  document.getElementById('tab-analysis-count').textContent = matched;
+
+  // Re-filter holdings to update badges
+  filterHoldings();
+  renderAnalysis();
+}
+
+function filterAnalysis() {
+  const q = document.getElementById('search-analysis').value.toLowerCase();
+  const cat = document.getElementById('cat-analysis').value;
+  analysisFiltered = analysisData.filter(h => {
+    if (cat && h.category !== cat) return false;
+    if (q) {
+      const txt = [h.bond_name, h.issuer, h.isin].join(' ').toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('analysis-count-label').textContent = `${analysisFiltered.length} matches`;
+  renderAnalysis();
+}
+
+function renderAnalysis() {
+  const el = document.getElementById('analysis-content');
+  if (!analysisFiltered.length) {
+    el.innerHTML = `<div class="loading-state"><div class="icon">📭</div>
+      <div>No portfolio bonds match broker quotes from scanned PDFs.</div>
+      <div style="margin-top:8px;font-size:11px;color:#4b5563">
+        Try scanning more PDFs or checking the broker quote files.</div></div>`;
+    return;
+  }
+
+  const grouped = {};
+  analysisFiltered.forEach(h => {
+    const cat = h.category || 'Other';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(h);
+  });
+
+  let html = '';
+  for (const [cat, bonds] of Object.entries(grouped)) {
+    html += `<div class="match-section">
+      <div class="section-title">${catBadge(cat)} ${cat} — ${bonds.length} bond${bonds.length!==1?'s':''}</div>`;
+
+    bonds.forEach(h => {
+      const fv = fmtCr(h.face_value_total);
+      const bv = fmtCr(h.book_value_total);
+      html += `<div class="match-card">
+        <div>
+          <h4>${h.bond_name || '—'}</h4>
+          <div class="meta">
+            <span>${isinLink(h.isin)}</span>
+            <span>${h.issuer || '—'}</span>
+            <span>Coupon: ${h.coupon_rate ? h.coupon_rate.toFixed(2)+'%' : '—'}</span>
+            <span>Maturity: ${h.maturity_date || '—'}</span>
+            <span>FV: ${fv}</span>
+            <span>BV: ${bv}</span>
+          </div>
+          ${h.quotes.map(q => `
+            <div class="quote-row">
+              <span>📄 <strong>${q.source_file}</strong></span>
+              ${q.price != null ? `<span>Price: <strong style="color:#38bdf8">${q.price.toFixed(2)}</strong></span>` : ''}
+              ${q.ytm != null ? `<span>YTM: <strong style="color:#22c55e">${Number(q.ytm).toFixed(2)}%</strong></span>` : ''}
+              ${q.coupon_rate ? `<span>Coupon: ${q.coupon_rate.toFixed(4)}%</span>` : ''}
+              ${q.rating ? `<span>Rating: ${ratingBadge(q.rating)}</span>` : ''}
+              ${q.available_lakhs ? `<span>Avail: <strong>${q.available_lakhs}</strong> L</span>` : ''}
+              <span style="opacity:.5;font-size:10px">${q.source_type}</span>
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="badge-quote has-quote">✅ ${h.quotes.length} quote${h.quotes.length!==1?'s':''}</span>
+          ${catBadge(h.category)}
+        </div>
+      </div>`;
+    });
+
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Pagination ───────────────────────────────────────────────
+function renderPagination(elId, total, current, onChange) {
+  const el = document.getElementById(elId);
+  const pages = Math.ceil(total / PAGE_SIZE);
+  if (pages <= 1) { el.innerHTML = ''; return; }
+
+  let btns = '';
+  const lo = Math.max(1, current-3), hi = Math.min(pages, current+3);
+  if (lo > 1) btns += `<button class="page-btn" onclick="(${onChange})(1)">1</button>`;
+  if (lo > 2) btns += `<span style="color:#4b5563;padding:6px">…</span>`;
+  for (let p = lo; p <= hi; p++) {
+    btns += `<button class="page-btn${p===current?' active':''}" onclick="(${onChange})(${p})">${p}</button>`;
+  }
+  if (hi < pages-1) btns += `<span style="color:#4b5563;padding:6px">…</span>`;
+  if (hi < pages) btns += `<button class="page-btn" onclick="(${onChange})(${pages})">${pages}</button>`;
+  el.innerHTML = btns;
+}
+
+// ── Error helpers ────────────────────────────────────────────
+function showError(id, msg) {
+  document.getElementById(id).innerHTML = `<div class="error-banner">⚠️ ${msg}</div>`;
+}
+function clearError(id) {
+  document.getElementById(id).innerHTML = '';
+}
+
+// ── Misc ─────────────────────────────────────────────────────
+function openDocs() { window.open('/docs', '_blank'); }
+
+// ── Init ─────────────────────────────────────────────────────
+window.onload = loadAll;
+</script>
+</body>
+</html>

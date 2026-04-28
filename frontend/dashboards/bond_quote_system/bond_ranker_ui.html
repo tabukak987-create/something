@@ -1,0 +1,1293 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bond Ranking Dashboard</title>
+<script src="/static/js/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --accent:    #58a6ff;
+    --green:     #3fb950;
+    --yellow:    #d29922;
+    --red:       #f85149;
+    --gold:      #f0c040;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Header ─────────────────────────── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -.3px;
+  }
+  header h1 span { color: var(--accent); }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    background: #1f2937;
+    color: var(--green);
+    border: 1px solid var(--green);
+  }
+  .ts { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Layout ─────────────────────────── */
+  main { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+
+  /* ── Cards ──────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── Sliders ─────────────────────────── */
+  .weight-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .weight-row label {
+    width: 140px;
+    font-size: 12px;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .weight-row label .wcode { color: var(--accent); font-weight: 600; }
+  .weight-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .weight-row .wval {
+    width: 38px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .weight-sum {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .weight-sum .ok { color: var(--green); }
+  .weight-sum .warn { color: var(--yellow); }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── Inputs / Selects ────────────────── */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 13px;
+    outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+
+  /* ── Buttons ─────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* ── Table ───────────────────────────── */
+  .rank-table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1f2937;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(88,166,255,.04); }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .rank-1 { background: #b8860b; color: #000; }
+  .rank-2 { background: #8a9099; color: #000; }
+  .rank-3 { background: #a0522d; color: #fff; }
+  .rank-other { background: #1f2937; color: var(--muted); border: 1px solid var(--border); }
+
+  /* ── Score bar ──────────────────── */
+  .score-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar-bg {
+    flex: 1; height: 6px;
+    background: #1f2937;
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 60px;
+  }
+  .score-bar { height: 100%; border-radius: 3px; transition: width .5s; }
+  .score-num { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 32px; text-align: right; }
+
+  /* ── Score breakdown tooltip ────── */
+  .breakdown {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;
+  }
+  .breakdown span {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #1f2937;
+    color: var(--muted);
+  }
+
+  /* ── Rating chips ───────────────── */
+  .rating-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .rating-sovereign { background: #0d4729; color: #3fb950; border: 1px solid #238636; }
+  .rating-aaa       { background: #0c2d6b; color: #79c0ff; border: 1px solid #1f6feb; }
+  .rating-aap       { background: #1a2d47; color: #a5d6ff; border: 1px solid #388bfd; }
+  .rating-aa        { background: #1e2a1e; color: #56d364; border: 1px solid #2ea043; }
+  .rating-sub       { background: #3d1c00; color: #ffa657; border: 1px solid #e3b341; }
+
+  /* ── Alert chip ─────────────────── */
+  .alert-chip {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .alert-sub { background: #3d1c00; color: #ffa657; }
+  .alert-illiq { background: #1c1c3d; color: #a8b3cf; }
+
+  /* ── Sensitivity panel ──────────── */
+  .sens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .sens-card {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+  }
+  .sens-card h4 {
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .sens-card .change-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .change-0 { background: #0d4729; color: #3fb950; }
+  .change-pos { background: #3d2d00; color: #d29922; }
+
+  /* ── Top bar stats ──────────────── */
+  .statsbar {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .stat { text-align: center; }
+  .stat .val { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
+  /* ── File upload ─────────────────── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s;
+    margin-bottom: 12px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); }
+  .upload-zone p { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .file-list { font-size: 12px; color: var(--green); max-height: 80px; overflow-y: auto; }
+
+  /* ── Spinner & states ────────────── */
+  .loading-row td {
+    text-align: center;
+    color: var(--muted);
+    padding: 32px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-msg {
+    background: #2d1518;
+    border: 1px solid var(--red);
+    color: #ff7b72;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #0d4729; color: #3fb950;
+    border: 1px solid #238636;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Sensitivity table ───────────── */
+  .stab-table { width: 100%; font-size: 12px; }
+  .stab-table td { padding: 6px 10px; border-bottom: 1px solid #1f2937; }
+  .stab-stable { color: var(--green); font-weight: 600; }
+  .stab-sens { color: var(--yellow); font-weight: 600; }
+
+  /* ── Tabs ────────────────────────── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Price History ──────────────────── */
+  .hist-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .hist-isin-input { background:var(--surface); border:1px solid var(--border); color:var(--text);
+    padding:6px 10px; border-radius:6px; font-size:13px; flex:1; min-width:180px; }
+  .hist-days-select { background:var(--surface); border:1px solid var(--border); color:var(--text);
+    padding:6px 8px; border-radius:6px; font-size:13px; }
+  .hist-isin-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .isin-chip { background:var(--border); color:var(--text); border:none; border-radius:12px;
+    padding:3px 10px; font-size:11px; cursor:pointer; transition:background .15s; }
+  .isin-chip:hover { background:var(--accent); color:#fff; }
+  .chart-container { position:relative; height:320px; background:var(--surface);
+    border-radius:8px; padding:12px; margin-bottom:14px; }
+  .hist-empty { color:var(--muted); font-size:13px; padding:30px 0; text-align:center; }
+  .hist-stats { display:flex; gap:20px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:6px; }
+  .hist-stat-item strong { color:var(--text); }
+
+  /* ── Auth modal ─────────────────────── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65);
+    z-index:1000; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:28px 32px; width:340px; max-width:90vw; }
+  .modal h3 { font-size:16px; margin-bottom:18px; }
+  .modal input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text);
+    padding:8px 12px; border-radius:6px; font-size:13px; margin-bottom:10px; outline:none; }
+  .modal input:focus { border-color:var(--accent); }
+  .modal-actions { display:flex; gap:8px; margin-top:8px; }
+  .auth-badge { font-size:12px; padding:3px 10px; border-radius:12px; cursor:pointer;
+    border:1px solid var(--border); background:none; color:var(--muted); transition:all .15s; }
+  .auth-badge:hover { border-color:var(--accent); color:var(--accent); }
+  .auth-badge.logged-in { border-color:var(--green); color:var(--green); }
+  .auth-err { color:var(--red); font-size:12px; margin-top:4px; min-height:16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>&#x1F4C8; Bond Ranking <span>Dashboard</span></h1>
+    <div class="ts" id="lastUpdated">Not yet loaded</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="badge" id="apiStatus">&#x2022; Connecting…</span>
+    <button class="btn btn-ghost btn-sm" onclick="loadTop5()">&#x21BA; Refresh</button>
+    <button class="auth-badge" id="authBtn" onclick="openAuthModal()">&#x1F513; Login</button>
+  </div>
+</header>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <h3>&#x1F512; Sign In</h3>
+    <div id="authModalInner">
+      <input type="text" id="authUser" placeholder="Username" autocomplete="username">
+      <input type="password" id="authPass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="auth-err" id="authErr"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+        <button class="btn btn-ghost" onclick="closeAuthModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <!-- Stats bar -->
+  <div class="statsbar">
+    <div class="stat"><div class="val" id="totalScored">–</div><div class="lbl">Bonds Scored</div></div>
+    <div class="stat"><div class="val" id="topScore">–</div><div class="lbl">Top Score</div></div>
+    <div class="stat"><div class="val" id="gsecBenchDisp">7.38%</div><div class="lbl">G-Sec Benchmark</div></div>
+    <div class="stat"><div class="val" id="avgSpreadDisp">–</div><div class="lbl">Avg Spread (bps)</div></div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <a href="/docs" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;">&#x1F4D6; API Docs</a>
+    </div>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="grid-2">
+    <!-- ── Left panel: controls ─────────────────── -->
+    <div>
+      <div class="card" id="weightPanel">
+        <h2>&#x2699; Scoring Weights</h2>
+        <div id="sliders"></div>
+        <div class="weight-sum">
+          <span>Sum: <span id="weightSumDisp" class="ok">1.00</span></span>
+          <span style="color:var(--muted);font-size:10px;">Auto-normalised</span>
+        </div>
+        <hr class="divider">
+        <h2 style="margin-bottom:10px;">&#x1F5C2; G-Sec Benchmark</h2>
+        <div class="weight-row">
+          <label><span class="wcode">G-Sec 10yr</span></label>
+          <input type="range" id="gsecSlider" min="5.5" max="9.5" step="0.01" value="7.38"
+                 oninput="document.getElementById('gsecVal').textContent=parseFloat(this.value).toFixed(2)+'%';document.getElementById('gsecBenchDisp').textContent=parseFloat(this.value).toFixed(2)+'%'">
+          <span class="wval" id="gsecVal">7.38%</span>
+        </div>
+        <hr class="divider">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="loadTop5()">&#x25B6; Rank Now</button>
+          <button class="btn btn-ghost" onclick="resetWeights()">&#x21BA; Reset</button>
+          <button class="btn btn-ghost" onclick="runSensitivity()">&#x1F4CA; Sensitivity</button>
+          <button class="btn btn-ghost" id="pdfBtn" onclick="downloadPdf()" title="Download PDF Report">&#x1F4C4; Download PDF</button>
+        </div>
+      </div>
+
+      <!-- Upload panel -->
+      <div class="card" style="margin-top:20px;">
+        <h2>&#x1F4CE; Upload PDFs / CSV / XLSX</h2>
+        <div class="upload-zone" id="uploadZone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted);margin:0 auto;display:block;">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p>Drag & drop or <strong style="color:var(--accent);">click to upload</strong></p>
+          <p>PDF · XLSX · CSV</p>
+        </div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.xlsx,.csv,.xls" style="display:none" onchange="handleFileSelect()">
+        <div class="file-list" id="fileList"></div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="extractAndRank()">&#x26A1; Extract & Rank</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearFiles()">&#x2715; Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Right panel: results ─────────────────── -->
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('ranking',this)">&#x1F3C6; Top Bonds</button>
+          <button class="tab" onclick="switchTab('sensitivity',this)">&#x1F4CA; Sensitivity</button>
+          <button class="tab" onclick="switchTab('market',this);loadMarketData()">&#x1F4B0; Market Data</button>
+          <button class="tab" onclick="switchTab('history',this);loadHistoryIsins()">&#x1F4C8; Price History</button>
+          <button class="tab" onclick="switchTab('raw',this)">&#x1F4CB; Raw JSON</button>
+        </div>
+
+        <!-- Ranking tab -->
+        <div class="tab-panel active" id="tab-ranking">
+          <div class="rank-table-wrap">
+            <table id="rankTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Bond</th>
+                  <th>ISIN</th>
+                  <th>Category</th>
+                  <th>Broker</th>
+                  <th>Price</th>
+                  <th>YTM</th>
+                  <th>Spread (bps)</th>
+                  <th>Rating</th>
+                  <th>Liquidity</th>
+                  <th>Score</th>
+                  <th>Market</th>
+                </tr>
+              </thead>
+              <tbody id="rankBody">
+                <tr class="loading-row"><td colspan="12">Click <strong>Rank Now</strong> to load results</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sensitivity tab -->
+        <div class="tab-panel" id="tab-sensitivity">
+          <div id="sensContent">
+            <p style="color:var(--muted);font-size:13px;">Run <strong>Sensitivity</strong> analysis to see rank stability under weight perturbations.</p>
+          </div>
+        </div>
+
+        <!-- Market Data tab -->
+        <div class="tab-panel" id="tab-market">
+          <div id="marketContent">
+            <p style="color:var(--muted);font-size:13px;">Loading market data...</p>
+          </div>
+        </div>
+
+        <!-- Price History tab -->
+        <div class="tab-panel" id="tab-history">
+          <div class="hist-controls">
+            <input class="hist-isin-input" id="histIsin" placeholder="ISIN (e.g. INE001A01036)" list="histIsinList">
+            <datalist id="histIsinList"></datalist>
+            <select class="hist-days-select" id="histDays">
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30" selected>30 days</option>
+              <option value="90">90 days</option>
+              <option value="180">180 days</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="loadHistory()">&#x1F4C8; Load Chart</button>
+            <button class="btn btn-ghost btn-sm" onclick="triggerSnapshot()" title="Save today's prices to history">&#x1F4BE; Snapshot</button>
+          </div>
+          <div class="hist-isin-list" id="histChips">
+            <span style="color:var(--muted);font-size:12px;">Loading tracked ISINs…</span>
+          </div>
+          <div class="chart-container" id="histChartWrap">
+            <div class="hist-empty" id="histEmpty">Enter an ISIN above and click <strong>Load Chart</strong></div>
+            <canvas id="histChart" style="display:none;"></canvas>
+          </div>
+          <div class="hist-stats" id="histStats"></div>
+        </div>
+
+        <!-- Raw JSON tab -->
+        <div class="tab-panel" id="tab-raw">
+          <pre id="rawJson" style="font-size:11px;max-height:500px;overflow:auto;color:var(--muted);"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = '/api/v1';
+
+// ── State ─────────────────────────────────────────────────────
+const WEIGHT_DEFS = [
+  { key: 'w1', label: 'Yield Advantage',   min: 0, max: 1, step: 0.01, default: 0.20 },
+  { key: 'w2', label: 'Spread vs G-Sec',   min: 0, max: 1, step: 0.01, default: 0.20 },
+  { key: 'w3', label: 'Credit Rating',     min: 0, max: 1, step: 0.01, default: 0.30 },
+  { key: 'w4', label: 'Liquidity',         min: 0, max: 1, step: 0.01, default: 0.10 },
+  { key: 'w5', label: 'Broker Reliability',min: 0, max: 1, step: 0.01, default: 0.10 },
+  { key: 'w6', label: 'IM (Pvt Bonds)',    min: 0, max: 1, step: 0.01, default: 0.10 },
+];
+
+let lastData = null;
+let uploadedFiles = [];
+
+// ── Build sliders ──────────────────────────────────────────────
+function buildSliders() {
+  const container = document.getElementById('sliders');
+  container.innerHTML = '';
+  WEIGHT_DEFS.forEach(def => {
+    const row = document.createElement('div');
+    row.className = 'weight-row';
+    row.innerHTML = `
+      <label><span class="wcode">${def.key}</span> ${def.label}</label>
+      <input type="range" id="slider_${def.key}" min="${def.min}" max="${def.max}"
+             step="${def.step}" value="${def.default}" oninput="updateWeightDisplay('${def.key}')">
+      <span class="wval" id="val_${def.key}">${def.default.toFixed(2)}</span>
+    `;
+    container.appendChild(row);
+  });
+  updateWeightSum();
+}
+
+function updateWeightDisplay(key) {
+  const val = parseFloat(document.getElementById('slider_' + key).value);
+  document.getElementById('val_' + key).textContent = val.toFixed(2);
+  updateWeightSum();
+}
+
+function updateWeightSum() {
+  const total = WEIGHT_DEFS.reduce((s, d) => s + parseFloat(document.getElementById('slider_' + d.key).value), 0);
+  const el = document.getElementById('weightSumDisp');
+  el.textContent = total.toFixed(2);
+  el.className = Math.abs(total - 1.0) < 0.01 ? 'ok' : 'warn';
+}
+
+function resetWeights() {
+  WEIGHT_DEFS.forEach(d => {
+    document.getElementById('slider_' + d.key).value = d.default;
+    document.getElementById('val_' + d.key).textContent = d.default.toFixed(2);
+  });
+  updateWeightSum();
+  showToast('Weights reset to defaults');
+}
+
+function downloadPdf() {
+  const w = getWeights();
+  const gsec = getGsec();
+  const btn = document.getElementById('pdfBtn');
+  btn.textContent = '⏳ Generating…';
+  btn.disabled = true;
+
+  const params = new URLSearchParams({
+    w1: w.w1, w2: w.w2, w3: w.w3, w4: w.w4, w5: w.w5, w6: w.w6,
+    gsec_benchmark: gsec,
+    top_n: 10,
+    include_all: true,
+    include_sensitivity: true,
+  });
+
+  // Trigger download via a temporary anchor
+  const url = `${API_BASE}/rank/export/pdf?${params.toString()}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';   // filename from Content-Disposition header
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  setTimeout(() => {
+    btn.textContent = '📄 Download PDF';
+    btn.disabled = false;
+  }, 3000);
+  showToast('PDF download started…');
+}
+
+function getWeights() {
+  return {
+    w1: parseFloat(document.getElementById('slider_w1').value),
+    w2: parseFloat(document.getElementById('slider_w2').value),
+    w3: parseFloat(document.getElementById('slider_w3').value),
+    w4: parseFloat(document.getElementById('slider_w4').value),
+    w5: parseFloat(document.getElementById('slider_w5').value),
+    w6: parseFloat(document.getElementById('slider_w6').value),
+  };
+}
+
+function getGsec() {
+  return parseFloat(document.getElementById('gsecSlider').value);
+}
+
+// ── API Calls ─────────────────────────────────────────────────
+async function checkApiHealth() {
+  try {
+    const r = await fetch(API_BASE + '/health', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      document.getElementById('apiStatus').textContent = '● Live';
+      document.getElementById('apiStatus').style.color = 'var(--green)';
+    }
+  } catch {
+    document.getElementById('apiStatus').textContent = '● Offline';
+    document.getElementById('apiStatus').style.color = 'var(--red)';
+  }
+}
+
+async function loadTop5() {
+  showLoading();
+  hideError();
+  const w = getWeights();
+  const gsec = getGsec();
+  const url = `${API_BASE}/rank/top5?w1=${w.w1}&w2=${w.w2}&w3=${w.w3}&w4=${w.w4}&w5=${w.w5}&w6=${w.w6}&gsec_benchmark=${gsec}`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
+    const data = await r.json();
+    lastData = data;
+    renderRanking(data);
+    updateStats(data);
+    document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date(data.timestamp).toLocaleTimeString();
+    showToast('Ranked ' + data.total_scored + ' bonds');
+  } catch (e) {
+    showError('Failed to load ranking: ' + e.message);
+    showEmptyTable();
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────
+function renderRanking(data) {
+  const tbody = document.getElementById('rankBody');
+  if (!data.top_bonds || data.top_bonds.length === 0) {
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="12">No bonds scored</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.top_bonds.map(b => {
+    const scoreColor = b.score >= 70 ? 'var(--green)' : b.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+    const barColor   = b.score >= 70 ? '#3fb950' : b.score >= 50 ? '#d29922' : '#f85149';
+    const rankClass  = b.rank <= 3 ? `rank-${b.rank}` : 'rank-other';
+    const ratingChip = ratingClass(b.credit_rating);
+    const alerts     = renderAlerts(b.alert);
+    const breakdown  = renderBreakdown(b.score_breakdown);
+    const catColor   = b.category === 'G-Sec' ? 'var(--green)' : b.category === 'Corporate' ? 'var(--accent)' : 'var(--yellow)';
+    const liqColor   = b.liquidity_status === 'Active' ? 'var(--green)' : 'var(--red)';
+    return `
+      <tr>
+        <td><span class="rank-badge ${rankClass}">${b.rank}</span></td>
+        <td>
+          <div style="font-weight:600;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(b.bond_name)}</div>
+          ${breakdown}
+        </td>
+        <td><span style="font-family:monospace;font-size:11px;color:var(--muted)">${escHtml(b.isin)}</span></td>
+        <td><span style="font-size:11px;color:${catColor};font-weight:600">${escHtml(b.category || '')}</span></td>
+        <td style="white-space:nowrap">${escHtml(b.best_broker)}</td>
+        <td style="font-variant-numeric:tabular-nums">₹ ${b.price.toFixed(2)}</td>
+        <td style="font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600">${b.ytm.toFixed(3)}%</td>
+        <td style="color:${b.spread_vs_gsec_bps > 0 ? 'var(--green)' : 'var(--muted)'}">
+          ${b.spread_vs_gsec_bps > 0 ? '+' : ''}${b.spread_vs_gsec_bps.toFixed(0)}
+          ${alerts}
+        </td>
+        <td><span class="rating-chip ${ratingChip}">${escHtml(b.credit_rating)}</span></td>
+        <td><span style="font-size:11px;color:${liqColor};font-weight:600">${b.liquidity_status || '—'}</span></td>
+        <td>
+          <div class="score-wrap">
+            <div class="score-bar-bg">
+              <div class="score-bar" style="width:${b.score}%;background:${barColor}"></div>
+            </div>
+            <span class="score-num" style="color:${scoreColor}">${b.score.toFixed(1)}</span>
+          </div>
+          ${b.penalty > 0 ? `<div style="font-size:10px;color:var(--red);">-${b.penalty} penalty</div>` : ''}
+        </td>
+        <td><span style="font-size:10px;color:var(--green);font-weight:600">${b.in_the_market !== false ? '✅ In the market' : '❌'}</span></td>
+      </tr>
+    `;
+  }).join('');
+  document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
+}
+
+function renderAlerts(alert) {
+  if (!alert) return '';
+  return alert.split(';').filter(Boolean).map(a => {
+    const cls = a === 'SubAA' ? 'alert-sub' : 'alert-illiq';
+    return `<span class="alert-chip ${cls}">${a}</span>`;
+  }).join('');
+}
+
+function renderBreakdown(bd) {
+  if (!bd) return '';
+  return `<div class="breakdown">
+    ${bd.yield_advantage !== undefined ? `<span>Yield ${bd.yield_advantage.toFixed(0)}</span>` : ''}
+    ${bd.spread_gsec !== undefined ? `<span>Spread ${bd.spread_gsec.toFixed(0)}</span>` : ''}
+    ${bd.credit_rating !== undefined ? `<span>Credit ${bd.credit_rating.toFixed(0)}</span>` : ''}
+    ${bd.liquidity !== undefined ? `<span>Liq ${bd.liquidity.toFixed(0)}</span>` : ''}
+    ${bd.broker_rely !== undefined ? `<span>Broker ${bd.broker_rely.toFixed(0)}</span>` : ''}
+    ${bd.im_score !== undefined ? `<span>IM ${bd.im_score.toFixed(0)}</span>` : ''}
+  </div>`;
+}
+
+function ratingClass(r) {
+  const s = (r || '').toLowerCase();
+  if (s.includes('sovereign') || s.includes('govt')) return 'rating-sovereign';
+  if (s === 'aaa') return 'rating-aaa';
+  if (s === 'aa+') return 'rating-aap';
+  if (s.startsWith('aa')) return 'rating-aa';
+  return 'rating-sub';
+}
+
+function updateStats(data) {
+  document.getElementById('totalScored').textContent = data.total_scored;
+  if (data.top_bonds && data.top_bonds.length > 0) {
+    document.getElementById('topScore').textContent = data.top_bonds[0].score.toFixed(1);
+    const avgSpread = (data.top_bonds.reduce((s, b) => s + b.spread_vs_gsec_bps, 0) / data.top_bonds.length).toFixed(0);
+    document.getElementById('avgSpreadDisp').textContent = (avgSpread > 0 ? '+' : '') + avgSpread;
+  }
+}
+
+// ── Market Data ───────────────────────────────────────────────
+async function loadMarketData() {
+  const container = document.getElementById('marketContent');
+  container.innerHTML = '<p style="color:var(--muted);font-size:13px;"><span class="spinner"></span> Loading market data…</p>';
+  try {
+    const [aaaRes, govtRes, spreadRes] = await Promise.all([
+      fetch(API_BASE + '/market/aaa-yields'),
+      fetch(API_BASE + '/market/govt-auction'),
+      fetch(API_BASE + '/market/credit-spread-matrix'),
+    ]);
+    const aaa = await aaaRes.json();
+    const govt = await govtRes.json();
+    const spread = await spreadRes.json();
+
+    let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
+
+    // AAA Yields
+    html += '<div class="card" style="padding:16px;">';
+    html += `<h3 style="color:var(--accent);margin-bottom:12px;">AAA Bond Indicative Yields</h3>`;
+    html += `<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">As of ${aaa.as_of_date || ''}</p>`;
+    html += '<table style="width:100%;font-size:13px;"><thead><tr><th>Tenor</th><th>Yield (%)</th></tr></thead><tbody>';
+    if (aaa.yields) {
+      Object.entries(aaa.yields).forEach(([k,v]) => {
+        html += `<tr><td>${k}</td><td style="color:var(--accent);font-weight:600;">${v}%</td></tr>`;
+      });
+    }
+    html += '</tbody></table></div>';
+
+    // Govt Auction
+    html += '<div class="card" style="padding:16px;">';
+    html += `<h3 style="color:var(--green);margin-bottom:12px;">Government Auction Data</h3>`;
+    html += `<p style="font-size:11px;color:var(--muted);margin-bottom:8px;">As of ${govt.as_of_date || ''}</p>`;
+    html += '<table style="width:100%;font-size:13px;"><thead><tr><th>Security</th><th>Cutoff Yield</th><th>Price</th></tr></thead><tbody>';
+    if (govt.auctions) {
+      Object.entries(govt.auctions).forEach(([k,v]) => {
+        html += `<tr><td>${k}</td><td style="color:var(--green);">${v.cutoff_yield}%</td><td>₹${v.price}</td></tr>`;
+      });
+    }
+    html += '</tbody></table></div>';
+
+    // Credit Spread Matrix
+    html += '<div class="card" style="padding:16px;grid-column:1/-1;">';
+    html += `<h3 style="color:var(--yellow);margin-bottom:12px;">Credit Spread Matrix (bps over G-Sec)</h3>`;
+    html += '<table style="width:100%;font-size:13px;text-align:center;"><thead><tr><th>Tenor</th><th>AAA</th><th>AA+</th><th>AA</th></tr></thead><tbody>';
+    if (spread.matrix) {
+      Object.entries(spread.matrix).forEach(([tenor, ratings]) => {
+        html += `<tr><td>${tenor}</td><td>${ratings.AAA}</td><td>${ratings['AA+']}</td><td>${ratings.AA}</td></tr>`;
+      });
+    }
+    html += '</tbody></table></div>';
+
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<p style="color:var(--red);">Error loading market data: ${e.message}</p>`;
+  }
+}
+
+// ── Sensitivity ───────────────────────────────────────────────
+async function runSensitivity() {
+  if (!lastData || !lastData.top_bonds || lastData.top_bonds.length === 0) {
+    await loadTop5();
+    if (!lastData || !lastData.top_bonds) return;
+  }
+
+  switchTabById('sensitivity');
+  const sensContent = document.getElementById('sensContent');
+  sensContent.innerHTML = '<p style="color:var(--muted)"><span class="spinner"></span> Running sensitivity analysis…</p>';
+
+  const w = getWeights();
+  const gsec = getGsec();
+  const body = {
+    quotes: lastData.top_bonds.map(b => ({
+      isin: b.isin, ytm: b.ytm, clean_price: b.price,
+      broker: b.best_broker
+    })),
+    weights: { yield_advantage: w.w1, spread_gsec: w.w2, credit_rating: w.w3, liquidity: w.w4, broker_rely: w.w5, im_score: w.w6 },
+    top_n: 5,
+    gsec_benchmark: gsec,
+  };
+
+  try {
+    const r = await fetch(API_BASE + '/rank/sensitivity?delta=0.1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    renderSensitivity(data);
+  } catch (e) {
+    sensContent.innerHTML = `<div class="error-msg" style="display:block">Sensitivity failed: ${e.message}</div>`;
+  }
+}
+
+function renderSensitivity(data) {
+  const c = document.getElementById('sensContent');
+  const stabRows = Object.entries(data.stability_summary || {}).map(([isin, verdict]) =>
+    `<tr><td style="font-family:monospace;font-size:11px">${isin}</td>
+     <td class="${verdict === 'Stable' ? 'stab-stable' : 'stab-sens'}">${verdict}</td></tr>`
+  ).join('');
+
+  const pertCards = (data.perturbations || []).slice(0, 10).map(p => {
+    const changes = p.rank_changes;
+    const rankList = (p.top_bonds || []).map((b, i) => `<div>${i + 1}. ${b.isin.slice(-4)} ${b.score.toFixed(1)}</div>`).join('');
+    return `<div class="sens-card">
+      <h4>${p.perturbed_weight} ${p.direction}${(p.delta * 100).toFixed(0)}%</h4>
+      <div class="change-badge ${changes === 0 ? 'change-0' : 'change-pos'}">${changes === 0 ? '✓ No change' : `${changes} rank shift${changes > 1 ? 's' : ''}`}</div>
+      <div style="font-size:11px;color:var(--muted)">${rankList}</div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML = `
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:20px">
+      <div>
+        <h3 style="font-size:13px;margin-bottom:8px;color:var(--muted)">RANK STABILITY</h3>
+        <table class="stab-table"><tbody>${stabRows}</tbody></table>
+      </div>
+      <div>
+        <h3 style="font-size:13px;margin-bottom:8px;color:var(--muted)">PERTURBATIONS (±10%)</h3>
+        <div class="sens-grid">${pertCards}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── File Upload ───────────────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('click', () => document.getElementById('fileInput').click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag');
+  uploadedFiles = [...e.dataTransfer.files];
+  renderFileList();
+});
+
+function handleFileSelect() {
+  uploadedFiles = [...document.getElementById('fileInput').files];
+  renderFileList();
+}
+
+function renderFileList() {
+  document.getElementById('fileList').innerHTML = uploadedFiles.map(f =>
+    `<div>✓ ${escHtml(f.name)} (${(f.size / 1024).toFixed(0)} KB)</div>`
+  ).join('');
+}
+
+function clearFiles() {
+  uploadedFiles = [];
+  document.getElementById('fileList').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+}
+
+async function extractAndRank() {
+  if (uploadedFiles.length === 0) { showToast('No files selected'); return; }
+  showLoading();
+  hideError();
+  const formData = new FormData();
+  uploadedFiles.forEach(f => formData.append('files', f));
+
+  try {
+    const extractResp = await fetch(API_BASE + '/extract', { method: 'POST', body: formData });
+    const extracted = await extractResp.json();
+
+    const allQuotes = extracted.flatMap(r => r.quotes || []);
+    if (allQuotes.length === 0) {
+      showError('No quotes could be extracted from uploaded files. PDFs may be scanned images (OCR not available).');
+      showEmptyTable();
+      return;
+    }
+
+    showToast(`Extracted ${allQuotes.length} quotes, ranking…`);
+    const w = getWeights();
+    const rankBody = {
+      quotes: allQuotes,
+      weights: { yield_advantage: w.w1, spread_gsec: w.w2, credit_rating: w.w3, liquidity: w.w4, broker_rely: w.w5, im_score: w.w6 },
+      top_n: 5,
+      gsec_benchmark: getGsec(),
+    };
+    const rankResp = await fetch(API_BASE + '/rank', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rankBody),
+    });
+    const rankData = await rankResp.json();
+    lastData = rankData;
+    renderRanking(rankData);
+    updateStats(rankData);
+    switchTabById('ranking');
+    showToast('Ranked ' + rankData.total_scored + ' bonds from uploaded files!');
+  } catch(e) {
+    showError('Extract & Rank failed: ' + e.message);
+    showEmptyTable();
+  }
+}
+
+// ── UI Helpers ────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('rankBody').innerHTML =
+    '<tr class="loading-row"><td colspan="12"><span class="spinner"></span> Scoring bonds…</td></tr>';
+}
+function showEmptyTable() {
+  document.getElementById('rankBody').innerHTML =
+    '<tr class="loading-row"><td colspan="12">No data</td></tr>';
+}
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('errorMsg').style.display = 'none';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'market') loadMarketData();
+}
+function switchTabById(name) {
+  const btn = [...document.querySelectorAll('.tab')].find(t => t.getAttribute('onclick').includes("'" + name + "'"));
+  if (btn) switchTab(name, btn);
+}
+
+// ── Auth ──────────────────────────────────────────────────────
+let authToken = sessionStorage.getItem('bqs_token') || null;
+let authUsername = sessionStorage.getItem('bqs_user') || null;
+
+function authHeaders() {
+  return authToken ? { 'Authorization': 'Bearer ' + authToken } : {};
+}
+
+async function checkAuthStatus() {
+  try {
+    const r = await fetch(API_BASE + '/auth/status');
+    const d = await r.json();
+    if (!d.auth_enabled) {
+      // Dev mode – show user as "dev"
+      document.getElementById('authBtn').textContent = '👤 Dev';
+      document.getElementById('authBtn').classList.add('logged-in');
+    } else if (authToken) {
+      document.getElementById('authBtn').textContent = '✓ ' + (authUsername || 'Logged in');
+      document.getElementById('authBtn').classList.add('logged-in');
+    }
+  } catch(e) {}
+}
+
+function openAuthModal() {
+  if (authToken) {
+    // Already logged in → offer logout
+    if (confirm('Log out?')) {
+      authToken = null; authUsername = null;
+      sessionStorage.removeItem('bqs_token');
+      sessionStorage.removeItem('bqs_user');
+      document.getElementById('authBtn').textContent = '🔓 Login';
+      document.getElementById('authBtn').classList.remove('logged-in');
+    }
+    return;
+  }
+  document.getElementById('authModal').classList.add('open');
+  document.getElementById('authUser').focus();
+}
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('open');
+  document.getElementById('authErr').textContent = '';
+}
+
+async function doLogin() {
+  const user = document.getElementById('authUser').value.trim();
+  const pass = document.getElementById('authPass').value;
+  document.getElementById('authErr').textContent = '';
+  if (!user) { document.getElementById('authErr').textContent = 'Username required'; return; }
+
+  const body = new URLSearchParams({ username: user, password: pass });
+  try {
+    const r = await fetch(API_BASE + '/auth/login', { method: 'POST', body });
+    const d = await r.json();
+    if (!r.ok) { document.getElementById('authErr').textContent = d.detail || 'Login failed'; return; }
+    authToken = d.access_token;
+    authUsername = d.username || user;
+    sessionStorage.setItem('bqs_token', authToken);
+    sessionStorage.setItem('bqs_user', authUsername);
+    document.getElementById('authBtn').textContent = '✓ ' + authUsername;
+    document.getElementById('authBtn').classList.add('logged-in');
+    closeAuthModal();
+    showToast('Signed in as ' + authUsername);
+  } catch(e) {
+    document.getElementById('authErr').textContent = 'Network error: ' + e.message;
+  }
+}
+
+// ── Price History ─────────────────────────────────────────────
+let histChartInstance = null;
+
+async function loadHistoryIsins() {
+  try {
+    const r = await fetch(API_BASE + '/history', { headers: authHeaders() });
+    if (!r.ok) return;
+    const rows = await r.json();
+    const chips = document.getElementById('histChips');
+    const dl = document.getElementById('histIsinList');
+    if (!rows || rows.length === 0) {
+      chips.innerHTML = '<span style="color:var(--muted);font-size:12px;">No tracked ISINs yet. Upload files then click <strong>Snapshot</strong>.</span>';
+      return;
+    }
+    chips.innerHTML = rows.map(r =>
+      `<button class="isin-chip" onclick="selectHistIsin('${r.isin}')" title="${r.bond_name||r.isin}">${r.isin}</button>`
+    ).join('');
+    dl.innerHTML = rows.map(r =>
+      `<option value="${r.isin}">${r.isin}${r.bond_name ? ' – '+r.bond_name : ''}</option>`
+    ).join('');
+  } catch(e) {}
+}
+
+function selectHistIsin(isin) {
+  document.getElementById('histIsin').value = isin;
+  loadHistory();
+}
+
+async function loadHistory() {
+  const isin = document.getElementById('histIsin').value.trim().toUpperCase();
+  const days = document.getElementById('histDays').value;
+  if (!isin) { showToast('Enter an ISIN first'); return; }
+
+  try {
+    const r = await fetch(`${API_BASE}/history/${encodeURIComponent(isin)}?days=${days}`, { headers: authHeaders() });
+    const d = await r.json();
+    if (!r.ok) { showError('History load error: ' + (d.detail || r.status)); return; }
+    renderHistoryChart(d);
+  } catch(e) {
+    showError('History fetch failed: ' + e.message);
+  }
+}
+
+function renderHistoryChart(data) {
+  const empty = document.getElementById('histEmpty');
+  const canvas = document.getElementById('histChart');
+  const stats = document.getElementById('histStats');
+
+  if (!data.history || data.history.length === 0) {
+    empty.style.display = 'block';
+    empty.innerHTML = `No price history found for <strong>${data.isin}</strong> in the last ${data.days} days.`;
+    canvas.style.display = 'none';
+    stats.innerHTML = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  canvas.style.display = 'block';
+
+  const labels = data.history.map(h => h.date);
+  const prices = data.history.map(h => h.clean_price);
+  const ytms   = data.history.map(h => h.ytm ? +(h.ytm * 100).toFixed(4) : null);
+
+  if (histChartInstance) histChartInstance.destroy();
+
+  const ctx = canvas.getContext('2d');
+  histChartInstance = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'line',
+          label: 'Clean Price',
+          data: prices,
+          borderColor: '#58a6ff',
+          backgroundColor: 'rgba(88,166,255,0.08)',
+          yAxisID: 'yPrice',
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          fill: true,
+        },
+        {
+          type: 'line',
+          label: 'YTM (%)',
+          data: ytms,
+          borderColor: '#3fb950',
+          backgroundColor: 'rgba(63,185,80,0.08)',
+          yAxisID: 'yYtm',
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderDash: [5, 3],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#8b949e', font: { size: 11 } },
+        },
+        tooltip: {
+          backgroundColor: '#161b22',
+          borderColor: '#30363d',
+          borderWidth: 1,
+          titleColor: '#e6edf3',
+          bodyColor: '#8b949e',
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (v === null) return null;
+              return ctx.dataset.label + ': ' + (ctx.datasetIndex === 0 ? '₹' + v.toFixed(2) : v.toFixed(4) + '%');
+            },
+          },
+        },
+        title: {
+          display: true,
+          text: data.isin + (data.history[0].bond_name ? ' – ' + data.history[0].bond_name : ''),
+          color: '#e6edf3',
+          font: { size: 12 },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#8b949e', font: { size: 10 } },
+          grid: { color: '#21262d' },
+        },
+        yPrice: {
+          position: 'left',
+          ticks: { color: '#58a6ff', font: { size: 10 }, callback: v => '₹' + v.toFixed(1) },
+          grid: { color: '#21262d' },
+        },
+        yYtm: {
+          position: 'right',
+          ticks: { color: '#3fb950', font: { size: 10 }, callback: v => v.toFixed(2) + '%' },
+          grid: { drawOnChartArea: false },
+        },
+      },
+    },
+  });
+
+  // Stats bar
+  const validPrices = prices.filter(p => p !== null);
+  const validYtms   = ytms.filter(y => y !== null);
+  const latest = data.history[data.history.length - 1];
+  const first  = data.history[0];
+  const priceChange = validPrices.length>=2 ? (validPrices[validPrices.length-1] - validPrices[0]).toFixed(2) : null;
+  const directionColor = priceChange >= 0 ? 'var(--green)' : 'var(--red)';
+  const ytmChange = validYtms.length>=2 ? (validYtms[validYtms.length-1] - validYtms[0]).toFixed(4) : null;
+
+  stats.innerHTML = [
+    priceChange !== null ? `<div class="hist-stat-item">Price change: <strong style="color:${directionColor}">${priceChange >= 0 ? '+' : ''}${priceChange}</strong></div>` : '',
+    ytmChange !== null ? `<div class="hist-stat-item">YTM change: <strong>${ytmChange >= 0 ? '+' : ''}${ytmChange}%</strong></div>` : '',
+    `<div class="hist-stat-item">Latest price: <strong>₹${latest.clean_price !== null ? (+latest.clean_price).toFixed(2) : '–'}</strong></div>`,
+    `<div class="hist-stat-item">Latest YTM: <strong>${latest.ytm !== null ? (latest.ytm*100).toFixed(2)+'%' : '–'}</strong></div>`,
+    `<div class="hist-stat-item">Broker: <strong>${latest.broker_name || '–'}</strong></div>`,
+    `<div class="hist-stat-item">Data points: <strong>${data.count}</strong></div>`,
+  ].join('');
+}
+
+async function triggerSnapshot() {
+  try {
+    showToast('Saving price snapshot…');
+    const r = await fetch(API_BASE + '/history/snapshot', {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    const d = await r.json();
+    if (!r.ok) { showError('Snapshot error: ' + (d.detail || r.status)); return; }
+    showToast(d.message || 'Snapshot saved!');
+    loadHistoryIsins();
+  } catch(e) {
+    showError('Snapshot failed: ' + e.message);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────
+buildSliders();
+checkApiHealth();
+checkAuthStatus();
+// Auto-load on open
+loadTop5();
+</script>
+</body>
+</html>
