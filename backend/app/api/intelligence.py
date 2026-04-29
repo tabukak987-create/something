@@ -25,7 +25,7 @@ from ..shared.auth import require_role, get_current_user, Roles
 from ..shared.metrics import alert_manager, AlertSeverity
 from ..domain.core_trust.audit import AuditAction, AuditService, AuditSeverity, EntityType
 from ..domain.market_data.base_fetcher import EnhancedMarketDataFetcher
-from ..services.scoring_engine import UnifiedScorer
+from ..domain.risk.scoring_engine import UnifiedScorer
 from ..utils.report_generator import UnifiedReportGenerator
 from ..utils.pdf_generator import UnifiedPDFGenerator
 from .compliance import run_compliance_check

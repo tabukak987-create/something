@@ -24,7 +24,7 @@ from pydantic import BaseModel
 from ..shared.auth import require_role, get_current_user, Roles
 from ..shared.database import fetch_all, fetch_one
 from ..shared.logger import get_logger
-from ..services.due_diligence_service import (
+from ..domain.compliance.due_diligence_service import (
     BondClassificationEngine,
     CorporateBondEnhancementEngine,
     DueDiligenceEngine,

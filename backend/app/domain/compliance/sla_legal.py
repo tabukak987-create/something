@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..shared.logger import get_logger
-from ..shared.time_utils import utcnow_iso
+from app.shared.logger import get_logger
+from app.shared.time_utils import utcnow_iso
 
 log = get_logger("services.sla_legal")
 

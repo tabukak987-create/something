@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..shared.database import fetch_all
+from app.shared.database import fetch_all
 
 
 async def scan_tradable_bonds(limit: int = 500) -> list[dict[str, Any]]:

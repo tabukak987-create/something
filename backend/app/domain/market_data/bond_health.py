@@ -19,10 +19,10 @@ from __future__ import annotations
 import json
 from datetime import date, datetime, timedelta
 
-from ..shared.database import fetch_all, fetch_one, execute_query
-from ..shared.logger import get_logger
+from app.shared.database import fetch_all, fetch_one, execute_query
+from app.shared.logger import get_logger
 from app.domain.portfolio.analytics import RATING_SCORE, compute_accrued_interest, normalize_rating
-from ..shared.market_config import (
+from app.shared.market_config import (
     RATING_SPREAD_BPS,
     interpolate_gsec_yield,
 )

@@ -24,7 +24,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..shared.time_utils import utcnow_iso
+from app.shared.time_utils import utcnow_iso
 
 logger = logging.getLogger("im_connectors")
 

@@ -6,14 +6,14 @@ from collections import defaultdict
 from typing import Any, Mapping
 from datetime import date
 
-from ..services.market_scanner import scan_tradable_bonds
-from ..domain.portfolio.analytics import compute_full_portfolio_analytics
-from ..domain.portfolio.analyzer import analyze_portfolio
-from ..domain.compliance.pf_engine import is_bond_eligible, validate_portfolio
-from ..services.relative_value_engine import compute_relative_value
-from ..services.bond_scoring_engine import score_bonds
-from ..domain.portfolio.allocator import optimize_allocation
-from ..services.tactical_allocation_engine import (
+from app.domain.market_data.market_scanner import scan_tradable_bonds
+from app.domain.portfolio.analytics import compute_full_portfolio_analytics
+from app.domain.portfolio.analyzer import analyze_portfolio
+from app.domain.compliance.pf_engine import is_bond_eligible, validate_portfolio
+from app.domain.market_data.relative_value_engine import compute_relative_value
+from app.domain.market_data.bond_scoring_engine import score_bonds
+from app.domain.portfolio.allocator import optimize_allocation
+from app.domain.portfolio.tactical_allocation_engine import (
     PF_YEAR_END_TARGET,
     calculate_rating_distribution,
     calculate_target_gap,
@@ -25,34 +25,34 @@ from ..services.tactical_allocation_engine import (
     strong_issuer_allowed,
     tactical_filter_universe,
 )
-from ..services.spread_intelligence_engine import analyze_spread_intelligence
-from ..services.market_timing_engine import (
+from app.domain.market_data.spread_intelligence_engine import analyze_spread_intelligence
+from app.domain.market_data.market_timing_engine import (
     adjust_scoring_weights_for_market_mode,
     apply_market_mode_overrides,
     determine_market_mode,
     infer_market_signals,
     strategy_mode_label,
 )
-from ..services.rebalance_planner import generate_rebalance_plan
-from ..services.time_phase_engine import (
+from app.domain.portfolio.rebalance_planner import generate_rebalance_plan
+from app.domain.portfolio.time_phase_engine import (
     determine_time_phase,
     filter_universe_by_bucket,
     select_preferred_bucket,
 )
-from ..services.yearly_allocation_engine import (
+from app.domain.portfolio.yearly_allocation_engine import (
     TARGET_RANGES,
     get_yearly_allocation_state,
     project_state_after_inflow,
     record_inflow_event,
 )
-from ..services.institutional_financial_core import (
+from app.domain.portfolio.institutional_financial_core import (
     BondValidationResult,
     compute_duration_metrics,
     compute_spread_metrics,
     validate_bond_record,
 )
-from ..services.explainability import build_change_tracking, build_counterfactual, build_explanation
-from ..services.instrument_classification import (
+from app.domain.core_trust.explainability import build_change_tracking, build_counterfactual, build_explanation
+from app.domain.market_data.instrument_classification import (
     INSTRUMENT_CATEGORY_EQUITY,
     INSTRUMENT_CATEGORY_PRIVATE,
     INSTRUMENT_CATEGORY_PSU,
@@ -63,7 +63,7 @@ from ..services.instrument_classification import (
     category_to_allocation_bucket,
     classify_instrument,
 )
-from ..shared.database import fetch_all
+from app.shared.database import fetch_all
 
 
 def build_recommendation_explanation(bond: dict[str, Any]) -> str:

@@ -24,7 +24,7 @@ from pydantic import BaseModel
 from ..shared.logger import get_logger
 from ..shared.auth import require_role, Roles
 from ..domain.core_trust.orchestrator import DecisionOrchestrator
-from ..services.explainability import build_explanation
+from ..domain.core_trust.explainability import build_explanation
 
 log = get_logger("router.ips_compliance")
 router = APIRouter(prefix="/ips", tags=["IPS Compliance"])
@@ -514,7 +514,7 @@ async def get_valuation(user=Depends(require_role(Roles.VIEWER))):
 @router.get("/tax/snapshot")
 async def tax_accounting_snapshot(user=Depends(require_role(Roles.COMPLIANCE))):
     """Get accounting snapshot with accrual income, MTM gains, and tax estimates."""
-    from ..services.tax_benchmark import TaxAccountingService
+    from ..domain.compliance.tax_benchmark import TaxAccountingService
     try:
         snapshot = await TaxAccountingService.compute_accounting_snapshot()
         tax = await TaxAccountingService.compute_tax_estimates()
@@ -533,7 +533,7 @@ async def store_benchmark(
     user=Depends(require_role(Roles.ADMIN)),
 ):
     """Store benchmark data point (e.g., CRISIL Composite Bond Index)."""
-    from ..services.tax_benchmark import BenchmarkService
+    from ..domain.compliance.tax_benchmark import BenchmarkService
     return await BenchmarkService.store_benchmark(
         req.benchmark_name, req.date, req.value, req.ytm
     )
@@ -546,7 +546,7 @@ async def get_performance(
     user=Depends(require_role(Roles.VIEWER)),
 ):
     """Compute portfolio performance vs benchmark."""
-    from ..services.tax_benchmark import BenchmarkService
+    from ..domain.compliance.tax_benchmark import BenchmarkService
     return await BenchmarkService.compute_performance(period_days=period_days, benchmark_name=benchmark)
 
 
@@ -557,7 +557,7 @@ async def get_performance(
 @router.post("/data-integrity/check")
 async def run_data_integrity(user=Depends(require_role(Roles.COMPLIANCE))):
     """Run data integrity validation across the bond master and holdings."""
-    from ..services.tax_benchmark import DataIntegrityValidator
+    from ..domain.compliance.tax_benchmark import DataIntegrityValidator
     result = await DataIntegrityValidator.run_integrity_checks()
     log.info("data_integrity_check", issues=result["total_issues"])
     return result
@@ -592,7 +592,7 @@ async def compliance_dashboard(user=Depends(require_role(Roles.VIEWER))):
     Full compliance dashboard: real-time status, breach summary,
     suggested corrections, escalation status, monitoring overview.
     """
-    from ..services.self_audit import ComplianceDashboard
+    from ..domain.compliance.self_audit import ComplianceDashboard
     try:
         return await ComplianceDashboard.get_dashboard()
     except Exception as e:
@@ -681,7 +681,7 @@ async def run_self_audit(user=Depends(require_role(Roles.ADMIN))):
 
     Returns institutional readiness verdict.
     """
-    from ..services.self_audit import SystemSelfAudit
+    from ..domain.compliance.self_audit import SystemSelfAudit
     result = await SystemSelfAudit.run_full_audit(user=user.get("sub", "system"))
     log.info("self_audit_completed",
              overall=result["overall_status"],
@@ -695,7 +695,7 @@ async def self_audit_history(
     user=Depends(require_role(Roles.VIEWER)),
 ):
     """Get self-audit run history."""
-    from ..services.self_audit import SystemSelfAudit
+    from ..domain.compliance.self_audit import SystemSelfAudit
     return await SystemSelfAudit.get_audit_history(limit)
 
 

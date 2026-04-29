@@ -29,8 +29,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
-from ..shared.database import execute_query, fetch_all, fetch_one
-from ..shared.time_utils import utcnow_iso
+from app.shared.database import execute_query, fetch_all, fetch_one
+from app.shared.time_utils import utcnow_iso
 
 logger = logging.getLogger("im_fetcher")
 

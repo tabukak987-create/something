@@ -17,8 +17,8 @@ from ..shared.auth import require_role, Roles, get_current_user
 from ..shared.database import fetch_all, fetch_one
 from ..shared.logger import get_logger
 from ..domain.compliance.rules_hardened import ComplianceHardeningService, BreachType
-from ..services.data_integrity import DataIntegrityService
-from ..services.math_validation import run_all_validations
+from ..domain.core_trust.data_integrity import DataIntegrityService
+from ..domain.core_trust.math_validation import run_all_validations
 from ..domain.core_trust.audit import AuditService, AuditAction, AuditSeverity, EntityType
 
 log = get_logger("router.institutional_ops")

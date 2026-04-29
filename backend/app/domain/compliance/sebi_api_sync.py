@@ -27,9 +27,9 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..shared.database import execute_query, fetch_all, fetch_one
-from ..shared.logger import get_logger
-from ..shared.time_utils import utcnow, utcnow_iso
+from app.shared.database import execute_query, fetch_all, fetch_one
+from app.shared.logger import get_logger
+from app.shared.time_utils import utcnow, utcnow_iso
 
 log = get_logger("sebi_api_sync")
 

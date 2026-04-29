@@ -15,8 +15,8 @@ from ..shared.database import fetch_all, fetch_one
 from ..shared.logger import get_logger
 from ..shared.auth import require_role, Roles
 from ..domain.core_trust.audit import AuditAction, AuditService, AuditSeverity, EntityType
-from ..services.explainability import build_counterfactual, build_explanation
-from ..services.instrument_classification import (
+from ..domain.core_trust.explainability import build_counterfactual, build_explanation
+from ..domain.market_data.instrument_classification import (
     INSTRUMENT_CATEGORY_EQUITY,
     INSTRUMENT_CATEGORY_PRIVATE,
     INSTRUMENT_CATEGORY_PSU,

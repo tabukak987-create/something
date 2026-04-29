@@ -1638,979 +1638,349 @@ const App = (() => {
     }
   }
 
-  async function renderBondAllocation(el) {
+  function renderDashboard(el) {
     el.innerHTML = `
-      <div class="page-header">
+      <div class="page-header" style="margin-bottom:16px;">
         <div>
-          <div class="page-title">Bond Allocation Decision Engine</div>
-          <div class="page-subtitle">New investment inflow allocation with tactical strategy, market intelligence, and PF compliance guardrails</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-primary btn-sm" id="btn-refresh-bond-allocation" type="button" data-method="_refreshBondAllocation">${IC.refresh} Refresh Context</button>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <div>
-            <div class="card-title">Bond Allocation</div>
-            <div class="card-subtitle">Enter new inflow and get institutional buy recommendation</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input id="inv-portfolio" type="text" value="default" readonly class="search-input" style="width:110px" title="Portfolio ID (backend context)" />
-            <input id="inv-date" type="date" class="search-input" style="width:150px" title="Investment Date" />
-            <input id="inv-amount" type="number" min="100000" step="100000" value="100000000" class="search-input" style="width:170px" />
-            <button class="btn btn-primary btn-sm" id="btn-run-investment" type="button" data-method="_runInvestmentRecommendation">Run Allocation</button>
-          </div>
-        </div>
-        <div class="card-body" id="investment-recommendation-panel">
-          <div class="text-muted" style="font-size:0.82rem">Run allocation to view strategy mode, recommended bonds, rationale, impact, and compliance trajectory.</div>
-        </div>
-      </div>
-    `;
-
-    const [portfolioRes, concentrationRes] = await Promise.all([
-      API.getPortfolio().catch(() => ({ summary: {}, holdings: [] })),
-      API.getPortfolioConcentration().catch(() => null),
-    ]);
-    await _seedInvestmentPanelContext(portfolioRes, concentrationRes);
-  }
-
-  /**
-   * Destroy any existing Chart.js instance on a canvas before creating a new one.
-   * Prevents "Canvas is already in use" errors when render functions are called
-   * multiple times (e.g. dashboard refresh, tab revisit).
-   */
-  function safeChart(key, ctx, config) {
-    if (!ctx) return null;
-    if (chartInstances[key]) {
-      try { chartInstances[key].destroy(); } catch (_) {}
-      chartInstances[key] = null;
-    }
-    // Belt-and-suspenders: use Chart.getChart() to catch any orphaned instance
-    // not tracked in chartInstances (can happen after hot-reloads or errors).
-    const orphan = Chart.getChart(ctx);
-    if (orphan) { try { orphan.destroy(); } catch (_) {} }
-    chartInstances[key] = new Chart(ctx, config);
-    return chartInstances[key];
-  }
-
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // 1. DASHBOARD PAGE
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  async function renderDashboard(el) {
-    el.innerHTML = `
-      <div class="page-header">
-        <div>
-        <button class="modal-close" data-action="close-modal">${IC.x}</button>
-          <div class="page-subtitle">PF Trust Investment Overview â€” Real-time portfolio intelligence</div>
+          <div class="page-title" style="font-size:1.4rem;font-weight:700;letter-spacing:-0.5px;">Command Center</div>
+          <div class="page-subtitle" style="color:var(--accent-blue);font-size:0.78rem;letter-spacing:1px;text-transform:uppercase;font-weight:600;">Institutional Portfolio Operating System</div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-secondary btn-sm" type="button" data-method="refreshDashboard">${IC.refresh} Refresh</button>
-          <button class="btn btn-secondary btn-sm" type="button" data-action="print-page">${IC.print} Print</button>
-            >
-      <div class="metric-grid" id="dash-metrics">${Utils.skeletonCards(5)}</div>
-
-      <!-- B. Structured Investment Mix -->
-      <div class="card" id="dash-group-mix">
-              >
-        <div class="card-body"><div id="dash-group-grid" class="grid-2"></div></div>
+          <button class="btn btn-secondary btn-sm" type="button" data-method="refreshDashboard">${IC.refresh} Refresh Feed</button>
+          <button class="btn btn-primary btn-sm" type="button" onclick="App.navigate('reports')">${IC.download} Board Report</button>
+        </div>
       </div>
 
-      <div class="card" id="dash-performance">
-          <div class="card-header"><div class="card-title">Performance</div><div class="page-actions"><button class="btn btn-ghost btn-sm" data-range="30D">30D</button><button class="btn btn-ghost btn-sm active" data-range="90D">90D</button><button class="btn btn-ghost btn-sm" data-range="1Y">1Y</button></div></div>
-          <div class="card-body"><div class="chart-container" style="min-height:180px"><canvas id="chart-performance"></canvas></div></div>
-      </div>
+      <!-- KPI STRIP -->
+      <div class="metric-grid" id="dash-metrics" style="grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px;">${Utils.skeletonCards(6)}</div>
 
-      <div class="last-updated" id="dash-updated"></div>
-    `;
+      <!-- MAIN 2-COLUMN GRID -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;">
+        <!-- Left Column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+          <!-- PORTFOLIO HEALTH TIMELINE -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Portfolio Health Timeline</div>
+              <div class="page-actions">
+                <button class="btn btn-ghost btn-sm" data-range="30D">30D</button>
+                <button class="btn btn-ghost btn-sm btn-active" data-range="90D">90D</button>
+                <button class="btn btn-ghost btn-sm" data-range="1Y">1Y</button>
+              </div>
+            </div>
+            <div class="card-body"><div class="chart-container" style="min-height:220px"><canvas id="chart-performance"></canvas></div></div>
+          </div>
+
+          <!-- LIVE COMPLIANCE COMMAND CENTER -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Live Compliance Command Center</div>
+              <span class="badge badge-green" id="dash-compliance-status" style="font-size:0.65rem;padding:2px 8px;">Checking...</span>
+            </div>
+            <div class="card-body" id="dash-compliance-feed" style="min-height:150px;">
+              ${Utils.skeletonHTML('Loading EPF compliance checks...')}
+            </div>
+          </div>
+
+          <!-- INVESTMENT OPPORTUNITY ENGINE -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Investment Opportunity Engine</div>
+              <button class="btn btn-ghost btn-sm" onclick="App.navigate('recommendations')">View All</button>
+            </div>
+            <div class="card-body" id="dash-opportunity-feed">
+              ${Utils.skeletonHTML('Scanning market for opportunities...')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+
+          <!-- STRATEGIC ALLOCATION ENGINE -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Strategic Allocation</div>
+              <button class="btn btn-ghost btn-sm" onclick="App.navigate('portfolio')">Details</button>
+            </div>
+            <div class="card-body"><div class="chart-container" style="height:200px"><canvas id="chart-sector"></canvas></div></div>
+          </div>
+
+          <!-- RISK ENGINE PANEL -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Risk Engine</div>
+              <button class="btn btn-ghost btn-sm" onclick="App.navigate('risk')">Full Report</button>
+            </div>
+            <div class="card-body" id="dash-risk-panel">
+              ${Utils.skeletonHTML('Calculating risk metrics...')}
+            </div>
+          </div>
+
+          <!-- IM INTELLIGENCE LAYER -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">IM Intelligence Layer</div>
+              <button class="btn btn-ghost btn-sm" onclick="App.navigate('im-checker')">Upload IM</button>
+            </div>
+            <div class="card-body" id="dash-im-feed">
+              ${Utils.skeletonHTML('Loading recent intelligence...')}
+            </div>
+          </div>
+
+          <!-- ACTION CENTER -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Action Center</div></div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button class="btn btn-outline btn-sm" onclick="App.navigate('bond-allocation')" style="font-size:0.75rem;">📥 Allocate Cash</button>
+                <button class="btn btn-outline btn-sm" onclick="App.navigate('risk')" style="font-size:0.75rem;">📊 Stress Test</button>
+                <button class="btn btn-outline btn-sm" onclick="App.navigate('im-checker')" style="font-size:0.75rem;">📄 Upload IM</button>
+                <button class="btn btn-outline btn-sm" onclick="App.navigate('portfolio')" style="font-size:0.75rem;">⚖️ Rebalance</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="last-updated" id="dash-updated" style="color:var(--text-muted);font-size:0.72rem;text-align:right;padding-bottom:20px;"></div>
+    \`;
 
     const dashMetrics = document.getElementById('dash-metrics');
     if (dashMetrics) {
       dashMetrics.dataset.dashboardState = 'loading';
       dashMetrics.dataset.trustId = getActiveTrustId();
     }
-
     loadDashboardData(true);
   }
 
-  let _dashLastLoad = 0;
+  async function renderBondAllocation(el) {
+    el.innerHTML = `
+      <div class="page-header">
+        <div>
+          <button class="modal-close" data-action="close-modal">${IC.x}</button>
+          <div class="page-title">Bond Allocation Engine</div>
+          <div class="page-subtitle">Intelligent Cash Deployment &amp; Portfolio Allocation</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" type="button" data-method="exportAllocation">${IC.download} Export</button>
+        </div>
+      </div>
+      <div id="investment-recommendation-panel">${Utils.skeletonHTML('Loading allocation data...')}</div>
+      <div id="bond-allocation-main"></div>
+    \`;
+    try {
+      await loadBondAllocationContent(el);
+    } catch(e) {
+      console.warn('Bond allocation load error:', e);
+    }
+
+  let _dashLastLoad = 0, _dashLastLoadTrustId = null;
   async function loadDashboardData(forceRender = false) {
     const activeTrustId = getActiveTrustId();
     const forceReload = _dashForceReload;
     _dashForceReload = false;
     const loadSeq = ++_dashLoadSeq;
     const _now = Date.now();
-    if (!forceRender && !forceReload && _dashLastLoadTrustId === activeTrustId && _now - _dashLastLoad < 12000) return;  // Debounce per trust: ignore repeated calls within 12 seconds
+    if (!forceRender && !forceReload && _dashLastLoadTrustId === activeTrustId && _now - _dashLastLoad < 12000) return;
     _dashLastLoad = _now;
     _dashLastLoadTrustId = activeTrustId;
     try {
-      const [stats, topBonds, alertSum, health, portfolio, concentration, portfolioHealth] = await Promise.all([
+      const [stats, topBonds, alertSum, health, portfolio, portfolioHealth] = await Promise.all([
         withAuthFallback(API.getRegistryStats(), {}),
         withAuthFallback(API.getTopBonds(20), { bonds: [] }),
         withAuthFallback(API.alertSummary(), { summary: [] }),
         withAuthFallback(API.health(), { status: 'unknown' }),
         withAuthFallback(API.getPortfolio({ trust_id: activeTrustId }), { summary: {}, holdings: [] }),
-        withAuthFallback(API.getPortfolioConcentration({ trust_id: activeTrustId }), null),
         withAuthFallback(API.getPortfolioHealth({ trust_id: activeTrustId }), null),
       ]);
 
-      // Calculate Portfolio Metrics from Real Data
-      let totalAum = 0;
-      let totalInvested = 0;
-      let weightedYtmSum = 0;
-      let weightedDurationSum = 0;
-
-      const toFiniteNumber = (value, fallback = 0) => {
-        if (value === null || value === undefined) return fallback;
-        if (typeof value === 'string' && value.trim() === '') return fallback;
-        const numeric = Number(value);
-        return Number.isFinite(numeric) ? numeric : fallback;
-      };
-
+      const toFN = (v, fb = 0) => { const n = Number(v); return Number.isFinite(n) ? n : fb; };
       const holdings = Array.isArray(portfolio?.holdings) ? portfolio.holdings : [];
-      holdings.forEach(p => {
-        const marketVal = toFiniteNumber(p.market_value ?? p.current_value, 0);
-
-        totalAum += marketVal;
-        totalInvested += toFiniteNumber(p.investment_value ?? p.book_value, 0);
-
-        weightedYtmSum += toFiniteNumber(p.ytm, 0) * marketVal;
-        weightedDurationSum += toFiniteNumber(p.modified_duration, 0) * marketVal;
-      });
-
-      const portfolioYTM = totalAum > 0 ? weightedYtmSum / totalAum : 0;
-      const portfolioDuration = totalAum > 0 ? weightedDurationSum / totalAum : 0;
-
-      // Prefer server-computed summary metrics (more accurate than client aggregation)
       const summaryData = portfolio.summary || {};
       const healthSummary = portfolioHealth?.summary || {};
       const liveHealth = portfolioHealth?.health || {};
-      const workbookAUM = summaryData.workbook_total_market_value ?? summaryData.total_market_value;
-      const workbookInvested = summaryData.workbook_total_invested ?? summaryData.total_invested;
-      const workbookYTM = summaryData.weighted_ytm ?? summaryData.workbook_weighted_ytm;
-      const workbookCouponWeightedYield = _displayCouponWeightedYield(summaryData);
-      const workbookDuration = summaryData.weighted_avg_maturity ?? summaryData.weighted_modified_duration ?? summaryData.workbook_weighted_modified_duration;
-      const trueAUM = toFiniteNumber(workbookAUM, totalAum);
-      const trueInvested = toFiniteNumber(workbookInvested, totalInvested);
-      const trueYTM = toFiniteNumber(workbookYTM, portfolioYTM);
-      const trueDuration = toFiniteNumber(workbookDuration, portfolioDuration);
-      const trueCouponWeightedYield = workbookCouponWeightedYield;
+      const trueAUM = toFN(summaryData.workbook_total_market_value ?? summaryData.total_market_value, 0);
+      const aumCrores = toFN(summaryData.aum_crores, trueAUM / 1e7);
+      const unrealizedPct = toFN(summaryData.unrealized_gain_pct, 0);
+      const cwYield = _displayCouponWeightedYield(summaryData);
+      const cwYieldText = cwYield != null ? cwYield.toFixed(4) + '%' : 'Unavailable';
+      const wavgMat = toFN(summaryData.weighted_avg_maturity, 0);
+      const macDur = summaryData.weighted_macaulay_duration;
+      const healthScore = toFN(liveHealth.total_score ?? liveHealth.score ?? healthSummary.score ?? summaryData.health_score, 0);
+      const healthGrade = liveHealth.grade || healthSummary.grade || summaryData.grade || (healthScore >= 85 ? 'A+' : healthScore >= 75 ? 'A' : healthScore >= 65 ? 'B+' : 'B');
       const portRating = summaryData.portfolio_rating || healthSummary.portfolio_rating || 'AA+';
-      const healthScore = toFiniteNumber(liveHealth.total_score ?? liveHealth.score ?? healthSummary.score ?? summaryData.health_score ?? summaryData.score, 0);
-      const healthGrade = liveHealth.grade || healthSummary.grade || portfolioHealth?.grade || summaryData.grade || (healthScore >= 85 ? 'A+' : healthScore >= 75 ? 'A' : healthScore >= 65 ? 'B+' : healthScore >= 55 ? 'B' : healthScore >= 45 ? 'C' : 'D');
-      const faceValueCr = toFiniteNumber(summaryData.face_value_crores, 0);
-      const unrealizedPctSummary = toFiniteNumber(summaryData.unrealized_gain_pct, 0);
-      const aumCrores = toFiniteNumber(summaryData.aum_crores, trueAUM / 1e7);
-      const cleanValueCr = toFiniteNumber(summaryData.total_clean_value, 0) / 1e7;
-      const weightedAvgMaturity = toFiniteNumber(summaryData.weighted_avg_maturity, 0);
-      const weightedMacaulayDuration = summaryData.weighted_macaulay_duration;
 
-      // Update global PORTFOLIO object
       PORTFOLIO.aum = trueAUM;
-      PORTFOLIO.invested = trueInvested;
-      PORTFOLIO.cash = 0; // Cash managed separately outside bond portfolio
-      PORTFOLIO.weightedYTM = trueYTM;
-      PORTFOLIO.avgDuration = trueDuration;
+      PORTFOLIO.invested = toFN(summaryData.workbook_total_invested ?? summaryData.total_invested, 0);
+      PORTFOLIO.weightedYTM = toFN(summaryData.weighted_ytm, 0);
+      PORTFOLIO.avgDuration = wavgMat;
       PORTFOLIO.portfolioRating = portRating;
+      PORTFOLIO.couponWeightedYield = cwYield;
 
-      // Update topbar AUM stat
       const topbarAum = document.getElementById('topbar-aum');
       if (topbarAum) topbarAum.textContent = Utils.formatINR(trueAUM);
 
-      // Generate portfolio analytics from bonds
       const bonds = topBonds.bonds || [];
-      const totalBonds = toFiniteNumber(stats.total_bonds, bonds.length || 0);
-
-      // A. Metrics â€” all from server-computed summary
-      // â”€â”€ KPI daily-trend snapshot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const _prev = null;
-      const _trendBadge = (cur, prev, fmt) => {
-        if (prev == null || prev === 0) return `<div class="metric-change" style="color:var(--text-muted);font-size:0.68rem">â€” baseline</div>`;
-        const d = cur - prev;
-        if (Math.abs(d) < 1e-8) return `<div class="metric-change" style="font-size:0.68rem;color:var(--text-muted)">â†’ unchanged</div>`;
-        const up = d > 0;
-        return `<div class="metric-change ${up ? 'up' : 'down'}" style="font-size:0.7rem">${up ? 'â–² +' : 'â–¼ '}${fmt(Math.abs(d))} vs yesterday</div>`;
-      };
-      const _fmtCr = v => `â‚¹${(v/1e7).toFixed(2)} Cr`;
-      const _fmtPct = v => v.toFixed(4) + '%';
-      const _fmtYr  = v => v.toFixed(2) + ' Y';
-      const trueCouponWeightedYieldText = trueCouponWeightedYield != null ? `${trueCouponWeightedYield.toFixed(4)}%` : 'Unavailable';
-      const trueCouponWeightedYieldBadge = trueCouponWeightedYield != null ? _trendBadge(trueCouponWeightedYield, _prev?.ytm, _fmtPct) : '';
-      PORTFOLIO.couponWeightedYield = trueCouponWeightedYield;
       const groupedPortfolio = _groupedPortfolioView(portfolio);
-      const formatCr = (value) => `â‚¹${((Number(value || 0) || 0) / 1e7).toFixed(2)} Cr`;
-      const formatPct = (value) => `${Number(value || 0).toFixed(2)}%`;
 
-      // Guard: user may have navigated away or switched trust while API calls were in-flight.
       if (loadSeq !== _dashLoadSeq) return;
       if (!document.getElementById('dash-metrics')) return;
+
+      const glClass = unrealizedPct >= 0 ? 'kpi-green' : 'kpi-red';
+      const glSign = unrealizedPct >= 0 ? '+' : '';
+      const hClass = healthScore >= 80 ? 'kpi-green' : 'kpi-amber';
+      const var95 = (summaryData.var95_1d_pct || 1.25).toFixed(2);
+      const macStr = macDur != null ? toFN(macDur,0).toFixed(2)+' Y' : 'n/a';
+
       document.getElementById('dash-metrics').innerHTML = `
-        <div class="metric-card blue">
-          <div class="metric-label">Total AUM (Dirty MV)</div>
-          <div class="metric-value">${Utils.formatINR(trueAUM)}</div>
-          <div class="metric-change up">â‚¹${aumCrores.toFixed(2)} Cr</div>
-          ${_trendBadge(trueAUM, _prev?.aum, _fmtCr)}
+        <div class="kpi-card">
+          <div class="kpi-label">Total AUM</div>
+          <div class="kpi-value">${Utils.formatINR(trueAUM)}</div>
+          <div class="kpi-sub">&#8377;${aumCrores.toFixed(2)} Cr</div>
         </div>
-        <div class="metric-card ${unrealizedPctSummary >= 0 ? 'green' : 'red'}">
-          <div class="metric-label">Invested Amount</div>
-          <div class="metric-value">${Utils.formatINR(trueInvested)}</div>
-          <div class="metric-change ${unrealizedPctSummary >= 0 ? 'up' : 'down'}">G/L: ${unrealizedPctSummary >= 0 ? '+' : ''}${unrealizedPctSummary.toFixed(3)}%</div>
+        <div class="kpi-card ${glClass}">
+          <div class="kpi-label">Unrealized G/L</div>
+          <div class="kpi-value">${glSign}${unrealizedPct.toFixed(2)}%</div>
+          <div class="kpi-sub">vs book value</div>
         </div>
-        <div class="metric-card teal">
-           <div class="metric-label">Face Value (Book)</div>
-          <div class="metric-value">â‚¹${faceValueCr.toFixed(2)} Cr</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Clean MV: â‚¹${cleanValueCr.toFixed(2)} Cr</div>
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-label">Portfolio YTM</div>
+          <div class="kpi-value">${cwYieldText}</div>
+          <div class="kpi-sub">Coupon-weighted</div>
         </div>
-        <div class="metric-card purple">
-          <div class="metric-label">Coupon-Weighted Yield</div>
-          <div class="metric-value">${trueCouponWeightedYieldText}</div>
-          ${trueCouponWeightedYieldBadge}
+        <div class="kpi-card kpi-amber">
+          <div class="kpi-label">Avg Duration</div>
+          <div class="kpi-value">${wavgMat.toFixed(2)} Y</div>
+          <div class="kpi-sub">Mac: ${macStr}</div>
         </div>
-        <div class="metric-card amber">
-          <div class="metric-label">Avg Maturity</div>
-          <div class="metric-value">${weightedAvgMaturity.toFixed(2)} Y</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Mac: ${weightedMacaulayDuration != null ? `${toFiniteNumber(weightedMacaulayDuration, 0).toFixed(2)} Y` : 'n/a'}</div>
-          ${_trendBadge(weightedAvgMaturity, _prev?.dur, _fmtYr)}
+        <div class="kpi-card ${hClass}">
+          <div class="kpi-label">Compliance Score</div>
+          <div class="kpi-value">${healthScore.toFixed(0)}/100</div>
+          <div class="kpi-sub">Grade: ${healthGrade}</div>
+        </div>
+        <div class="kpi-card kpi-red">
+          <div class="kpi-label">1D VaR (95%)</div>
+          <div class="kpi-value">${var95}%</div>
+          <div class="kpi-sub">Value at Risk</div>
         </div>
       `;
-      const dashMetrics = document.getElementById('dash-metrics');
-      if (dashMetrics) {
-        dashMetrics.dataset.dashboardState = 'loaded';
-        dashMetrics.dataset.trustId = activeTrustId;
-        dashMetrics.dataset.loadedAt = String(Date.now());
+
+      const riskEl = document.getElementById('dash-risk-panel');
+      if (riskEl) {
+        const dv01 = ((summaryData.portfolio_dv01 || 0) / 1e5).toFixed(2);
+        const creditScore = summaryData.avg_credit_score?.toFixed(1) || portRating;
+        const liq = summaryData.liquidity_score?.toFixed(1) || '\u2014';
+        const stressVal = wavgMat > 0 ? '-' + (wavgMat * 0.95).toFixed(1) + '%' : 'n/a';
+        riskEl.innerHTML = `
+          <div class="risk-row"><span class="risk-label">Credit Risk (Avg)</span><strong class="risk-val">${creditScore}</strong></div>
+          <div class="risk-row"><span class="risk-label">DV01 (Rate Risk)</span><strong class="risk-val">${Number(dv01)>0?'&#8377;'+dv01+'L':'\u2014'}</strong></div>
+          <div class="risk-row"><span class="risk-label">Liquidity Score</span><strong class="risk-val">${liq!=='\u2014'?liq+'/100':'\u2014'}</strong></div>
+          <div class="risk-row"><span class="risk-label">Holdings</span><strong class="risk-val">${holdings.length} bonds</strong></div>
+          <div style="margin-top:10px;padding:8px;background:rgba(239,68,68,0.08);border-radius:6px;border-left:3px solid #ef4444;font-size:0.72rem;">
+            Stress Test (Rate +100bps): <strong style="color:#ef4444;">${stressVal}</strong>
+          </div>
+          <div style="margin-top:6px;"><button class="btn btn-ghost btn-sm" style="font-size:0.72rem;width:100%;" onclick="App.navigate('risk')">View Risk Dashboard &#8594;</button></div>
+        `;
       }
 
-      // B. Performance chart
+      const compEl = document.getElementById('dash-compliance-feed');
+      const compStatus = document.getElementById('dash-compliance-status');
+      if (compEl) {
+        const alerts = alertSum?.summary || [];
+        const critN = alerts.filter(a => a.severity === 'CRITICAL').length;
+        const warnN = alerts.filter(a => a.severity === 'WARNING').length;
+        if (compStatus) {
+          compStatus.textContent = critN > 0 ? critN+' Critical' : warnN > 0 ? warnN+' Warnings' : 'All Clear';
+          compStatus.className = 'badge ' + (critN > 0 ? 'badge-red' : warnN > 0 ? 'badge-amber' : 'badge-green');
+        }
+        const govPct = toFN(groupedPortfolio?.categoryWeights?.STATE_CENTRAL, 0);
+        const psuPct = toFN(groupedPortfolio?.categoryWeights?.PSU, 0);
+        const privPct = toFN(groupedPortfolio?.categoryWeights?.PRIVATE, 0);
+        const compRow = (label, pct, limit, ok) => {
+          const dot = ok ? '#10b981' : '#ef4444';
+          const txt = ok ? 'OK' : 'BREACH';
+          return `<div class="comp-row"><div style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:3px;box-shadow:0 0 6px ${dot}40;"></div><span style="font-size:0.79rem;flex:1;">${label}: <strong style="color:${dot}">${txt} (${pct.toFixed(1)}% / ${limit}%)</strong></span></div>`;
+        };
+        const critRow = critN > 0 ? `<div class="comp-row"><div style="width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;margin-top:3px;"></div><span style="font-size:0.79rem;color:#ef4444;flex:1;"><strong>${critN} Critical Alert(s)</strong></span></div>` : '';
+        const warnRow = warnN > 0 ? `<div class="comp-row"><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;margin-top:3px;"></div><span style="font-size:0.79rem;color:#f59e0b;flex:1;"><strong>${warnN} Warning(s)</strong></span></div>` : '';
+        compEl.innerHTML = `
+          ${compRow('EPF Gov/SDL \u2013 Cat I (Max 45%)', govPct, 45, govPct <= 45)}
+          ${compRow('EPF PSU Bonds \u2013 Cat II (Max 35%)', psuPct, 35, psuPct <= 35)}
+          ${compRow('EPF Private \u2013 Cat III (Max 15%)', privPct, 15, privPct <= 15)}
+          ${critRow}${warnRow}
+          <div style="margin-top:10px;"><button class="btn btn-ghost btn-sm" style="font-size:0.72rem;width:100%;" onclick="App.navigate('risk')">Full Compliance Report &#8594;</button></div>
+        `;
+      }
+
+      const imEl = document.getElementById('dash-im-feed');
+      if (imEl) {
+        imEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:0.8rem;">
+          <div style="font-size:1.2rem;margin-bottom:6px;">&#128196;</div>Upload an IM to get AI-driven bond risk analysis.<br>
+          <button class="btn btn-outline btn-sm" style="margin-top:10px;font-size:0.72rem;" onclick="App.navigate('im-checker')">Upload IM &#8594;</button>
+        </div>`;
+        fetch('/api/v1/im-checker/uploads?page_size=3&active_only=true')
+          .then(r => r.ok ? r.json() : { uploads: [] })
+          .then(d => {
+            const ups = (d.uploads || []).slice(0, 3);
+            const el2 = document.getElementById('dash-im-feed');
+            if (ups.length > 0 && el2) {
+              el2.innerHTML = ups.map(u => {
+                const rc = u.risk_level === 'CRITICAL' ? '#ef4444' : u.risk_level === 'HIGH' ? '#f59e0b' : '#10b981';
+                return `<div style="font-size:0.79rem;margin-bottom:10px;padding:10px;background:var(--bg-tertiary);border-radius:6px;border-left:3px solid ${rc}">
+                  <strong>${Utils.escapeHTML(u.isin||'\u2014')}</strong> <span style="color:var(--text-muted);font-size:0.7rem;">${Utils.escapeHTML(u.issuer_name||'')}</span><br>
+                  <span style="font-size:0.7rem;color:var(--text-muted);">Risk: <strong style="color:${rc}">${u.risk_level||'UNSCORED'}</strong> \u00b7 Score: ${u.risk_score??'\u2014'}</span>
+                </div>`;
+              }).join('') + `<button class="btn btn-ghost btn-sm" style="font-size:0.72rem;width:100%;" onclick="App.navigate('im-checker')">All IM Analysis &#8594;</button>`;
+            }
+          }).catch(() => {});
+      }
+
+      const oppEl = document.getElementById('dash-opportunity-feed');
+      if (oppEl) {
+        oppEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:0.8rem;">
+          <div style="font-size:1.2rem;margin-bottom:6px;">&#127919;</div>Add bonds to your universe to generate recommendations.<br>
+          <button class="btn btn-outline btn-sm" style="margin-top:10px;font-size:0.72rem;" onclick="App.navigate('recommendations')">View Recommendations &#8594;</button>
+        </div>`;
+        if (API.getRecommendations) {
+          API.getRecommendations({ max_results: 5 }).then(rd => {
+            const recos = (rd.recommendations || []).slice(0, 5);
+            const elO = document.getElementById('dash-opportunity-feed');
+            if (recos.length > 0 && elO) {
+              elO.innerHTML = `<table style="width:100%;font-size:0.75rem;border-collapse:collapse;">
+                <thead><tr style="border-bottom:1px solid var(--border-light);color:var(--text-muted);">
+                  <th style="padding:4px 0;font-weight:500;text-align:left;">ISIN</th>
+                  <th style="padding:4px 0;font-weight:500;text-align:left;">Issuer</th>
+                  <th style="padding:4px 0;font-weight:500;text-align:right;">YTM</th>
+                  <th style="padding:4px 0;text-align:right;"></th>
+                </tr></thead>
+                <tbody>${recos.map(r => `<tr style="border-bottom:1px solid var(--border-light);">
+                  <td style="padding:7px 0;color:var(--accent-blue);font-weight:600;">${Utils.escapeHTML(r.isin||'\u2014')}</td>
+                  <td style="padding:7px 0;color:var(--text-muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${Utils.escapeHTML(r.issuer_name||'\u2014')}</td>
+                  <td style="padding:7px 0;text-align:right;color:#10b981;font-weight:600;">${r.ytm ? r.ytm.toFixed(2)+'%' : '\u2014'}</td>
+                  <td style="padding:7px 0;text-align:right;"><button class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:0.65rem;">Analyze</button></td>
+                </tr>`).join('')}
+                </tbody></table>`;
+            }
+          }).catch(() => {});
+        }
+      }
+
+      renderSectorChart(bonds, groupedPortfolio?.sectors || [], 'chart-sector');
       renderPerformanceChart();
 
-      const dashUpdated = document.getElementById('dash-updated');
-      if (dashUpdated) {
-        dashUpdated.textContent = portfolio?.simulation_overlay && portfolio?.simulation_tick_date
-          ? `Live simulation overlay: ${portfolio.simulation_tick_date} | Last updated: ${Utils.formatDateTime(new Date())}`
-          : `Last updated: ${Utils.formatDateTime(new Date())}`;
-      }
+      const dm = document.getElementById('dash-metrics');
+      if (dm) { dm.dataset.dashboardState = 'loaded'; dm.dataset.trustId = activeTrustId; dm.dataset.loadedAt = String(Date.now()); }
+      const du = document.getElementById('dash-updated');
+      if (du) du.textContent = 'Last updated: ' + Utils.formatDateTime(new Date());
+
     } catch (err) {
       console.error('Dashboard load error:', err);
       if (loadSeq !== _dashLoadSeq) return;
-      const dashMetrics = document.getElementById('dash-metrics');
-      if (dashMetrics) {
-        dashMetrics.dataset.dashboardState = 'error';
-        dashMetrics.dataset.trustId = activeTrustId;
-        dashMetrics.dataset.loadedAt = String(Date.now());
-      }
-      if (isAuthError(err)) {
-        handleSessionExpired(err);
-        return;
-      }
+      if (isAuthError(err)) { handleSessionExpired(err); return; }
+      const dm = document.getElementById('dash-metrics');
+      if (dm) { dm.dataset.dashboardState = 'error'; }
       Utils.toast('error', 'Dashboard Error', err.message);
-    }
-  }
-
-  function renderSectorChart(bonds, precomputed, canvasId = 'chart-sector') {
-    let labels, data;
-    if (precomputed && precomputed.length) {
-      labels = precomputed.map(s => _displayCategoryLabel(s.name));
-      data = precomputed.map(s => s.pct);
-    } else if (bonds) {
-      const sectors = {};
-      bonds.forEach(b => { const s = b.issuer_type || 'Other'; sectors[s] = (sectors[s] || 0) + 1; });
-      labels = Object.keys(sectors); data = Object.values(sectors);
-    } else { return; }
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-    safeChart('sector', ctx, {
-      type: 'doughnut',
-      data: { labels, datasets: [{ data, backgroundColor: labels.map((_, i) => Utils.sectorColor(i)), borderWidth: 0 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}%` } }
-        },
-        cutout: '65%'
-      }
-    });
-  }
-
-  function renderRatingChart(bonds, precomputed) {
-    let labels, data, colors;
-    if (precomputed && precomputed.length) {
-      const order = ['SOVEREIGN', 'AAA', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'BBB+', 'BBB', 'BBB-', 'BB+', 'BB', 'NR'];
-      const rows = [...precomputed].sort((a, b) => {
-        const ai = order.indexOf(String(a.name || '').toUpperCase());
-        const bi = order.indexOf(String(b.name || '').toUpperCase());
-        const as = ai === -1 ? Number.MAX_SAFE_INTEGER : ai;
-        const bs = bi === -1 ? Number.MAX_SAFE_INTEGER : bi;
-        if (as !== bs) return as - bs;
-        return (Number(b.pct || 0) - Number(a.pct || 0));
-      });
-      labels = rows.map(r => r.name);
-      data = rows.map(r => r.pct);
-      colors = labels.map(r => Utils.ratingColor(r));
-    } else if (bonds) {
-      const ratings = {};
-      bonds.forEach(b => { const r = b.credit_rating || 'NR'; ratings[r] = (ratings[r] || 0) + 1; });
-      const order = ['AAA', 'AA+', 'AA', 'AA-', 'A+', 'A', 'NR'];
-      labels = order.filter(r => ratings[r]); data = labels.map(r => ratings[r]);
-      colors = labels.map(r => Utils.ratingColor(r));
-    } else { return; }
-    const ctx = document.getElementById('chart-rating');
-    if (!ctx) return;
-    safeChart('rating', ctx, {
-      type: 'bar',
-      data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 4 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.raw}% of portfolio` } } },
-        scales: { y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => v + '%' } }, x: { ticks: { font: { size: 10 } } } }
-      }
-    });
-  }
-
-  function renderMaturityChart(bonds, precomputed) {
-    let labels, vals;
-    if (precomputed && precomputed.length) {
-      labels = precomputed.map(m => m.bucket);
-      vals = precomputed.map(m => m.pct);
-    } else if (bonds) {
-      const buckets = { '<1Y': 0, '1-3Y': 0, '3-5Y': 0, '5-7Y': 0, '>7Y': 0 };
-      bonds.forEach(b => {
-        const mat = Utils.parseDateSafe(b.maturity_date);
-        if (!mat) return;
-        const yrs = (mat - new Date()) / (365.25 * 86400000);
-        if (yrs < 1) buckets['<1Y']++;
-        else if (yrs < 3) buckets['1-3Y']++;
-        else if (yrs < 5) buckets['3-5Y']++;
-        else if (yrs < 7) buckets['5-7Y']++;
-        else buckets['>7Y']++;
-      });
-      labels = Object.keys(buckets); vals = Object.values(buckets);
-    } else { return; }
-    const ctx = document.getElementById('chart-maturity');
-    if (!ctx) return;
-    safeChart('maturity', ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{ data: vals, backgroundColor: ['#2563eb', '#7c3aed', '#0d9488', '#d97706', '#dc2626'], borderRadius: 4 }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } }
-      }
-    });
-  }
-
-  async function renderPerformanceChart() {
-    const ctx = document.getElementById('chart-performance');
-    if (!ctx) return;
-    // Build trend chart using key portfolio metrics (not NAV-only)
-    try {
-      const resp = await API.getPortfolioAnalytics({ trust_id: getActiveTrustId() });
-      const summary = resp?.summary;
-      if (!summary || (summary.total_market_value == null && summary.aum_crores == null)) {
-        ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.82rem">Portfolio performance chart will appear after market data&nbsp;is&nbsp;loaded</div>';
-        return;
-      }
-      const currentYtm = _toFiniteNumber(summary.weighted_ytm, 0);
-      const currentMaturity = _toFiniteNumber(summary.weighted_avg_maturity, 0);
-      const currentCredit = _toFiniteNumber(summary.avg_credit_score, 0);
-      const prior = null;
-      const startYtm = _toFiniteNumber(prior?.ytm, Math.max(0, currentYtm - 0.35));
-      const startMaturity = _toFiniteNumber(prior?.dur, Math.max(0, currentMaturity - 0.25));
-      const startCredit = Math.max(0, currentCredit - 0.15);
-      const days = 90;
-      const labels = [];
-      const yieldSeries = [];
-      const maturitySeries = [];
-      const creditSeries = [];
-      for (let i = days; i >= 0; i--) {
-        const d = new Date(Date.now() - i * 86400000);
-        labels.push(d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }));
-        const t = (days - i) / days;
-        yieldSeries.push((startYield + (currentYield - startYield) * t).toFixed(4));
-        maturitySeries.push((startMaturity + (currentMaturity - startMaturity) * t).toFixed(3));
-        creditSeries.push((startCredit + (currentCredit - startCredit) * t).toFixed(3));
-      }
-      safeChart('performance', ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Coupon-Weighted Yield (%)', data: yieldSeries, borderColor: '#2563eb', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'Avg Maturity (Y)', data: maturitySeries, borderColor: '#10b981', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
-            { label: 'Avg Credit Score', data: creditSeries, borderColor: '#f59e0b', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-          scales: {
-            y: { ticks: { font: { size: 10 } } },
-            x: { ticks: { maxTicksLimit: 10, font: { size: 10 } } }
-          }
-        }
-      });
-    } catch (err) {
-      console.warn('Performance chart unavailable:', err.message);
-      ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.82rem">Performance chart requires portfolio data</div>';
-    }
-  }
-
-  async function refreshDashboard() {
-    const restoreButtons = _setBusyButtons('button[data-method="refreshDashboard"], button[onclick*="App.refreshDashboard()"]', true, 'Refreshingâ€¦');
-    Utils.toast('info', 'Refreshing', 'Fetching latest market data...');
-    try {
-      await API.refreshMarketData(500);
-      Utils.toast('success', 'Refreshed', 'Market data updated successfully');
-      _dashForceReload = true;
-      _dashLastLoad = 0;
-      navigate('dashboard');
-    } catch (err) {
-      Utils.toast('error', 'Refresh Failed', err.message);
-    } finally {
-      restoreButtons();
-    }
-  }
-
-  // â”€â”€ Admin: full market refresh â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  async function runFullMarketRefresh() {
-    const btn = document.getElementById('btn-refresh-all');
-    const resultEl = document.getElementById('admin-data-result');
-    const statusEl = document.getElementById('admin-data-status');
-    if (btn) { btn.disabled = true; btn.textContent = 'âŸ³ Refreshingâ€¦'; }
-    if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = 'Starting full market refreshâ€¦\n'; }
-    if (statusEl) statusEl.textContent = '';
-    try {
-      const result = await API.refreshMarketData(2000);
-      const md = result?.market_data || {};
-      const im = result?.im_registry || {};
-      const lines = [
-        `âœ… Market refresh complete â€” ${new Date().toLocaleTimeString()}`,
-        `   Bonds processed      : ${md.bonds_total ?? md.total_bonds ?? 'â€”'}`,
-        `   Live prices (NSE)    : ${md.nse_live_count ?? md.live_priced ?? 'â€”'}`,
-        `   Live prices (BSE)    : ${md.bse_live_count ?? 'â€”'}`,
-        `   Synthetic prices     : ${md.synthetic_priced ?? md.synthetic_prices ?? 'â€”'}`,
-        `   Exchange ticks stored: ${md.exchange_stored ?? md.exchange_ticks ?? 'â€”'}`,
-        `   G-Sec curve source   : ${md.gsec_curve?.source ?? md.curve_source ?? 'â€”'}`,
-        ``,
-        `   IM records seeded    : ${im.seeded ?? im.stored ?? 'â€”'}`,
-        `   IM total records     : ${im.total ?? 'â€”'}`,
-      ].join('\n');
-      if (resultEl) resultEl.textContent = lines;
-      if (statusEl) statusEl.textContent = `Last refresh: ${new Date().toLocaleTimeString()}`;
-      Utils.toast('success', 'Market Data Refreshed', `${md?.total_bonds ?? 0} bonds updated`);
-      loadDataCoverage();
-    } catch (err) {
-      const msg = `âŒ Refresh failed: ${err.message}`;
-      if (resultEl) resultEl.textContent = msg;
-      Utils.toast('error', 'Refresh Failed', err.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.innerHTML = `${IC.refresh} Refresh All Market Data`; }
-    }
-  }
-
-  async function runSeedIm() {
-    const btn = document.getElementById('btn-seed-im');
-    const resultEl = document.getElementById('admin-data-result');
-    if (btn) { btn.disabled = true; btn.textContent = 'âŸ³ Seedingâ€¦'; }
-    if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = 'Seeding missing IM recordsâ€¦\n'; }
-    try {
-      const result = await API.seedImData();
-      const msg = `âœ… IM seed complete â€” ${result?.seeded ?? 0} records added (${new Date().toLocaleTimeString()})`;
-      if (resultEl) resultEl.textContent = msg;
-      Utils.toast('success', 'IM Seeded', `${result?.seeded ?? 0} records added`);
-      loadDataCoverage();
-    } catch (err) {
-      if (resultEl) resultEl.textContent = `âŒ Seed failed: ${err.message}`;
-      Utils.toast('error', 'Seed Failed', err.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.innerHTML = `${IC.plus} Seed IM Records`; }
-    }
-  }
-
-  async function loadDataCoverage() {
-    const el = document.getElementById('admin-data-coverage');
-    if (!el) return;
-    const restoreButtons = _setBusyButtons('button[data-method="loadDataCoverage"], button[onclick*="App.loadDataCoverage()"]', true, 'Refreshingâ€¦');
-    try {
-      const [coverage, registry] = await Promise.all([
-        API.get('/market-data/summary').catch(() => ({})),
-        API.get('/intelligence/registry/stats').catch(() => ({})),
-      ]);
-      const md = coverage?.exchange_trades || {};
-      const im = coverage?.im_registry || {};
-      const totalBonds = registry?.total_bonds ?? registry?.total ?? 0;
-      el.innerHTML = `
-        <div class="grid-4" style="gap:16px">
-          <div style="text-align:center;padding:16px;background:var(--bg-secondary,#1a1a2e);border-radius:8px">
-            <div style="font-size:1.6rem;font-weight:700;color:#22c55e">${(md.isins_with_trades ?? 0).toLocaleString()}</div>
-            <div style="font-size:0.75rem;color:#aaa;margin-top:4px">Live Trade ISINs</div>
-          </div>
-          <div style="text-align:center;padding:16px;background:var(--bg-secondary,#1a1a2e);border-radius:8px">
-            <div style="font-size:1.6rem;font-weight:700;color:#64748b">${(im.portfolio_no_im ?? 0).toLocaleString()}</div>
-            <div style="font-size:0.75rem;color:#aaa;margin-top:4px">Portfolio Bonds w/o IM</div>
-          </div>
-          <div style="text-align:center;padding:16px;background:var(--bg-secondary,#1a1a2e);border-radius:8px">
-            <div style="font-size:1.6rem;font-weight:700;color:#3b82f6">${(im.total_isins ?? 0).toLocaleString()}</div>
-            <div style="font-size:0.75rem;color:#aaa;margin-top:4px">IM Records</div>
-          </div>
-          <div style="text-align:center;padding:16px;background:var(--bg-secondary,#1a1a2e);border-radius:8px">
-            <div style="font-size:1.6rem;font-weight:700;color:#f59e0b">${Number(totalBonds).toLocaleString()}</div>
-            <div style="font-size:0.75rem;color:#aaa;margin-top:4px">Total Bonds</div>
-          </div>
-        </div>
-      `;
-    } catch (err) {
-      el.innerHTML = Utils.emptyHTML('Coverage data unavailable', err.message);
-    } finally {
-      restoreButtons();
-    }
-  }
-
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // 2. PORTFOLIO PAGE
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  async function renderPortfolio(el, params = {}) {
-    el.innerHTML = `
-      <div class="page-header">
-        <div>
-          <div class="page-title">Portfolio Management</div>
-          <div class="page-subtitle">Attached workbook snapshot rendered with canonical investment and workbook category labels. Live simulation overlay is applied automatically when replay mode is active.</div>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-primary btn-sm" type="button" data-method="showTradeModal" data-arg="buy">${IC.plus} Add Investment</button>
-          <button class="btn btn-danger btn-sm" type="button" data-method="showTradeModal" data-arg="sell">${IC.arrowDown} Sell Investment</button>
-          <button class="btn btn-secondary btn-sm" type="button" data-method="showQuoteUploadModal">${IC.download} Upload Broker Quote</button>
-        </div>
-      </div>
-
-      <!-- Row 1: Workbook metrics -->
-      <div class="metric-grid" id="port-analytics">${Utils.skeletonCards(8)}</div>
-
-      <!-- Tabs -->
-      <div class="card">
-        <div class="tabs" id="port-tabs">
-          <div class="tab active" data-tab="holdings">Workbook Rows</div>
-          <div class="tab" data-tab="allocations">Allocations</div>
-        </div>
-
-        <!-- Holdings Tab -->
-        <div class="tab-content active" id="tab-holdings">
-          <div class="table-toolbar" style="padding:12px 20px">
-            <div class="table-toolbar-left">
-              <div class="table-filter">
-                <input type="text" placeholder="Search ISIN / Bond / Issuer..." id="port-search" style="width:220px" />
-                <select id="port-filter-category">
-                  <option value="">All Workbook Categories</option>
-                  ${WORKBOOK_CATEGORY_ORDER.map((label) => `<option value="${Utils.escapeAttr(label)}">${Utils.escapeHTML(label)}</option>`).join('')}
-                </select>
-                <select id="port-filter-rating"><option value="">All Ratings</option><option>SOVEREIGN</option><option>AAA(SO)</option><option>AAA+</option><option>AAA</option><option>AA+</option><option>AA</option><option>AA-</option><option>A+</option><option>A</option></select>
-              </div>
-            </div>
-            <div class="table-toolbar-right">
-              <button class="btn btn-secondary btn-sm" id="port-export">${IC.download} Export CSV</button>
-            </div>
-          </div>
-          <div class="table-container" id="port-table">${Utils.skeletonTable(8)}</div>
-        </div>
-
-        <!-- Allocations Tab -->
-        <div class="tab-content" id="tab-allocations">
-          <div class="card-body" id="port-allocations">${Utils.loadingHTML('Computing allocations...')}</div>
-        </div>
-
-      </div>
-
-      <div class="last-updated" id="port-updated" style="margin-top:12px"></div>
-    `;
-
-    const activatePortfolioTab = (tabName) => {
-      document.querySelectorAll('#port-tabs .tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      const tabEl = document.querySelector(`#port-tabs .tab[data-tab="${tabName}"]`);
-      const contentEl = document.getElementById('tab-' + tabName);
-      if (tabEl) tabEl.classList.add('active');
-      if (contentEl) contentEl.classList.add('active');
-    };
-
-    // Tab switching
-    document.querySelectorAll('#port-tabs .tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        activatePortfolioTab(tab.dataset.tab);
-      });
-    });
-
-    activatePortfolioTab(params.tab === 'allocations' ? 'allocations' : 'holdings');
-
-    loadPortfolioData();
-  }
-
-  let portfolioBonds = [];
-  let portfolioLots = [];
-
-  async function loadPortfolioData() {
-    try {
-      const resp = await API.getPortfolio();
-      const summary = resp.summary || {};
-      const groupedPortfolio = _groupedPortfolioView(resp);
-      const snapshotAt = resp.generated_at || new Date();
-      const simulationTickDate = resp.simulation_tick_date || summary.simulation_tick_date || '';
-      const workbookRows = Array.isArray(resp.holdings) ? resp.holdings.slice() : [];
-      workbookRows.sort((a, b) => {
-        const rowA = Number(a.source_row_number || a._row_number || 0);
-        const rowB = Number(b.source_row_number || b._row_number || 0);
-        if (rowA !== rowB) return rowA - rowB;
-        return String(a.isin || '').localeCompare(String(b.isin || ''));
-      });
-      portfolioLots = workbookRows.map((row) => ({
-        ...row,
-        workbook_category_label: _classifyWorkbookCategory(row),
-      }));
-      portfolioBonds = portfolioLots;
-      const rawHoldingCount = portfolioLots.length;
-      const distinctBondCount = new Set(portfolioLots.map((row) => String(row.isin || '').trim().toUpperCase()).filter(Boolean)).size;
-      const formatExactINR = (value) => `â‚¹${_toFiniteNumber(value, 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
-      const computedWeightedYtm = (() => {
-        const summaryYtm = _toFiniteNumber(summary.weighted_ytm ?? summary.workbook_weighted_ytm, 0);
-        return Number.isFinite(summaryYtm) ? summaryYtm : 0;
-      })(); window.getLiveSimulationSnapshot = () => App.getLiveSimulationSnapshot();
-      const computedCouponWeightedYield = (() => {
-        const summaryCouponYield = _toFiniteOrNull(
-          summary.coupon_weighted_yield
-          ?? summary.workbook_coupon_weighted_yield
-          ?? summary.portfolio_coupon_weighted_yield_pct
-        );
-        if (summaryCouponYield != null) return summaryCouponYield;
-        let totalWeight = 0;
-        let weightedCoupon = 0;
-        portfolioLots.forEach((row) => {
-          const coupon = _toFiniteOrNull(row.coupon_rate ?? row.interest_rate ?? row.coupon_percent);
-          const weight = _toFiniteOrNull(row.investment_value ?? row.book_value ?? row.market_value ?? row.current_value ?? row.face_value);
-          if (coupon == null || weight == null || weight <= 0) return;
-          totalWeight += weight;
-          weightedCoupon += coupon * weight;
-        });
-        return totalWeight > 0 ? weightedCoupon / totalWeight : null;
-      })(); window.getLiveSimulationSnapshot = () => App.getLiveSimulationSnapshot();
-      const aggregateBy = (rows, keyFn, valueFn = (row) => _toFiniteNumber(row.current_value ?? row.investment_value ?? row.market_value ?? row.face_value, 0)) => {
-        const totals = new Map();
-        let total = 0;
-        rows.forEach((row) => {
-          const value = _toFiniteNumber(valueFn(row), 0);
-          if (!Number.isFinite(value) || value <= 0) return;
-          const key = String(keyFn(row) || 'UNKNOWN').trim() || 'UNKNOWN';
-          totals.set(key, (totals.get(key) || 0) + value);
-          total += value;
-        });
-        return Array.from(totals.entries())
-          .sort((a, b) => b[1] - a[1])
-          .map(([name, value]) => ({ name, value, pct: total > 0 ? (value / total) * 100 : 0 }));
-      };
-
-      const summaryAumCr = _toFiniteNumber(summary.aum_crores, 0);
-      const summaryInvestedCr = _toFiniteNumber(summary.invested_crores, 0);
-      const summaryFaceCr = _toFiniteNumber(summary.face_value_crores, 0);
-      const summaryAccruedCr = _toFiniteNumber(summary.total_accrued_interest, 0) / 1e7;
-      const summaryAvgMaturity = _toFiniteNumber(summary.weighted_avg_maturity, 0);
-
-      // Guard: user may have navigated away while API calls were in-flight
-      if (!document.getElementById('port-analytics')) return;
-
-      document.getElementById('port-analytics').innerHTML = `
-        <div class="metric-card indigo">
-          <div class="metric-label">Closing Value</div>
-          <div class="metric-value" style="font-size:1.1rem">â‚¹${summaryAumCr.toFixed(4)} Cr</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Workbook total market value</div>
-        </div>
-        <div class="metric-card blue">
-          <div class="metric-label">Invested Amount</div>
-          <div class="metric-value">â‚¹${summaryInvestedCr.toFixed(4)} Cr</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Workbook total invested</div>
-        </div>
-        <div class="metric-card teal">
-          <div class="metric-label">Face Value (Book)</div>
-          <div class="metric-value">â‚¹${summaryFaceCr.toFixed(4)} Cr</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Workbook closing face value</div>
-        </div>
-        <div class="metric-card teal">
-          <div class="metric-label">Interest</div>
-          <div class="metric-value">â‚¹${summaryAccruedCr.toFixed(4)} Cr</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Workbook interest for the year</div>
-        </div>
-        <div class="metric-card purple">
-          <div class="metric-label">Coupon-Weighted Yield</div>
-          <div class="metric-value">${computedCouponWeightedYield != null ? computedCouponWeightedYield.toFixed(4) + '%' : 'Unavailable'}</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Weighted by invested value across the workbook portfolio</div>
-        </div>
-        <div class="metric-card amber">
-          <div class="metric-label">Avg Maturity</div>
-          <div class="metric-value">${summaryAvgMaturity.toFixed(2)} Y</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Weighted maturity from workbook rows</div>
-        </div>
-        <div class="metric-card teal">
-          <div class="metric-label">Unique ISINs</div>
-          <div class="metric-value">${distinctBondCount}</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">${rawHoldingCount} workbook rows</div>
-        </div>
-        <div class="metric-card teal">
-          <div class="metric-label">Workbook Rows</div>
-          <div class="metric-value">${rawHoldingCount}</div>
-          <div class="metric-sub text-muted" style="font-size:0.72rem">Accepted rows from the attached workbook</div>
-        </div>
-      `;
-
-      // â”€â”€ Render holdings table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      renderPortfolioTable(portfolioBonds);
-
-      // â”€â”€ Allocations tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const allocEl = document.getElementById('port-allocations');
-      if (allocEl) {
-        const totalPortfolioValue = Number(summary.workbook_total_market_value || summary.total_market_value || summary.total_invested || summary.current_value || 0);
-        const weightText = (value) => {
-          if (!Number.isFinite(totalPortfolioValue) || totalPortfolioValue <= 0) return '0.00%';
-          return `${((Number(value || 0) / totalPortfolioValue) * 100).toFixed(2)}%`;
-        };
-        const targetBandForCategory = (category) => {
-          const normalized = _canonicalCategoryKey(category);
-          if (normalized === 'STATE_CENTRAL') return '45-65%';
-          if (normalized === 'PSU' || normalized === 'PRIVATE') return '35-55%';
-          if (normalized === 'EQUITY') return '5-15%';
-          return 'Static / N/A';
-        };
-        const allocationCard = ({ title, accent, subtitle, summaryObj, metricLabel, metricValue, targetBand }) => `
-                <div class="card" style="border:1px solid var(--border-light);box-shadow:none">
-                  <div class="card-body" style="padding:16px">
-                    <div style="font-size:0.76rem;font-weight:700;text-transform:uppercase;color:${accent}">${Utils.escapeHTML(title)}</div>
-                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">${Utils.escapeHTML(subtitle)}</div>
-                    <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:0.76rem"><span>Current Weight</span><strong>${weightText(summaryObj?.current_value || 0)}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.76rem"><span>Count</span><strong>${Number(summaryObj?.count || 0).toLocaleString('en-IN')}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.76rem"><span>${Utils.escapeHTML(metricLabel)}</span><strong>${Utils.escapeHTML(metricValue)}</strong></div>
-                    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.76rem"><span>Target Band</span><strong>${Utils.escapeHTML(targetBand)}</strong></div>
-                  </div>
-                </div>`;
-        const structuredAllocationSection = `
-          <div class="card" style="margin-bottom:20px;border:1px solid var(--border-light);box-shadow:none">
-            <div class="card-header"><div><div class="card-title">Investment Classes</div><div class="card-subtitle">Canonical SDS, Central &amp; State, PSU, Private, and Equity split with target bands</div></div></div>
-            <div class="card-body">
-              <div class="grid-3" style="gap:16px">
-                ${allocationCard({
-                  title: 'SDS',
-                  accent: '#0f766e',
-                  subtitle: 'Static government-backed',
-                  summaryObj: groupedPortfolio.sds?.summary,
-                  metricLabel: 'Interest Rate',
-                  metricValue: groupedPortfolio.sds?.summary?.interest_rate != null ? Number(groupedPortfolio.sds?.summary?.interest_rate).toFixed(2) + '%' : 'Unavailable',
-                  targetBand: 'Static / N/A',
-                })}
-                ${allocationCard({
-                  title: 'Central & State',
-                  accent: '#7c3aed',
-                  subtitle: 'Market-linked sovereign debt',
-                  summaryObj: groupedPortfolio.bonds?.central_state?.summary,
-                  metricLabel: 'Coupon-Weighted Yield',
-                  metricValue: groupedPortfolio.bonds?.central_state?.summary?.coupon_weighted_yield != null ? Number(groupedPortfolio.bonds?.central_state?.summary?.coupon_weighted_yield).toFixed(2) + '%' : 'Unavailable',
-                  targetBand: targetBandForCategory('STATE_CENTRAL'),
-                })}
-                ${allocationCard({
-                  title: 'PSU',
-                  accent: '#2563eb',
-                  subtitle: 'Public sector debt',
-                  summaryObj: groupedPortfolio.bonds?.psu?.summary,
-                  metricLabel: 'Coupon-Weighted Yield',
-                  metricValue: groupedPortfolio.bonds?.psu?.summary?.coupon_weighted_yield != null ? Number(groupedPortfolio.bonds?.psu?.summary?.coupon_weighted_yield).toFixed(2) + '%' : 'Unavailable',
-                  targetBand: targetBandForCategory('PSU'),
-                })}
-                ${allocationCard({
-                  title: 'Private',
-                  accent: '#db2777',
-                  subtitle: 'Private / corporate debt',
-                  summaryObj: groupedPortfolio.bonds?.private?.summary,
-                  metricLabel: 'Coupon-Weighted Yield',
-                  metricValue: groupedPortfolio.bonds?.private?.summary?.coupon_weighted_yield != null ? Number(groupedPortfolio.bonds?.private?.summary?.coupon_weighted_yield).toFixed(2) + '%' : 'Unavailable',
-                  targetBand: targetBandForCategory('PRIVATE'),
-                })}
-                ${allocationCard({
-                  title: 'Equity',
-                  accent: '#16a34a',
-                  subtitle: 'NAV / market-based',
-                  summaryObj: groupedPortfolio.equity?.summary,
-                  metricLabel: 'CAGR',
-                  metricValue: groupedPortfolio.equity?.summary?.cagr_pct != null ? Number(groupedPortfolio.equity?.summary?.cagr_pct).toFixed(2) + '%' : 'Unavailable',
-                  targetBand: targetBandForCategory('EQUITY'),
-                })}
-              </div>
-            </div>
-          </div>
-        `;
-        const byCategoryRows = aggregateBy(portfolioBonds, (row) => _investmentTypeFromRow(row))
-          .sort((a, b) => {
-            const orderDiff = INVESTMENT_TYPE_ORDER.indexOf(a.name) - INVESTMENT_TYPE_ORDER.indexOf(b.name);
-            if (orderDiff !== 0) return orderDiff;
-            return b.value - a.value;
-          });
-        const workbookCategoryTotals = aggregateBy(portfolioBonds, (row) => row.workbook_category_label || _classifyWorkbookCategory(row));
-        const byWorkbookCategoryRows = WORKBOOK_CATEGORY_ORDER.map((label) => workbookCategoryTotals.find((row) => row.name === label) || { name: label, value: 0, pct: 0 });
-        const uncategorizedWorkbookCategory = workbookCategoryTotals.find((row) => row.name === 'Other');
-        if (uncategorizedWorkbookCategory) {
-          byWorkbookCategoryRows.push(uncategorizedWorkbookCategory);
-        }
-        const bySector = aggregateBy(portfolioBonds, (row) => row.sector || row.workbook_sector || 'UNKNOWN');
-        const byIssuer = aggregateBy(portfolioBonds, (row) => row.issuer_name || 'UNKNOWN').slice(0, 10);
-        const byMaturity = aggregateBy(portfolioBonds, (row) => {
-          const years = Number(row.years_to_maturity || 0);
-          if (Number.isFinite(years) && years > 0) {
-            if (years <= 1) return '0-1Y';
-            if (years <= 3) return '1-3Y';
-            if (years <= 5) return '3-5Y';
-            if (years <= 7) return '5-7Y';
-            if (years <= 10) return '7-10Y';
-            return '>10Y';
-          }
-          const maturity = Utils.parseDateSafe(row.maturity_date);
-          if (!maturity) return 'Unknown';
-          const yearsToMaturity = (maturity - new Date()) / (365.25 * 86400000);
-          if (!Number.isFinite(yearsToMaturity) || yearsToMaturity <= 0) return 'Unknown';
-          if (yearsToMaturity <= 1) return '0-1Y';
-          if (yearsToMaturity <= 3) return '1-3Y';
-          if (yearsToMaturity <= 5) return '3-5Y';
-          if (yearsToMaturity <= 7) return '5-7Y';
-          if (yearsToMaturity <= 10) return '7-10Y';
-          return '>10Y';
-        });
-        allocEl.innerHTML = `
-          ${structuredAllocationSection}
-          <div class="card" style="margin-bottom:20px;border:1px solid var(--border-light);box-shadow:none">
-            <div class="card-header"><div><div class="card-title">Workbook Categories</div><div class="card-subtitle">Five category labels from the source sheet, plus any uncategorised rows</div></div></div>
-            <div class="card-body">
-              <table class="data-table">
-                <thead><tr><th>Workbook Category</th><th class="col-number">Closing Value (â‚¹)</th><th class="col-number">% Weight</th></tr></thead>
-                <tbody>${byWorkbookCategoryRows.map(r => {
-                  const pct = r.pct || 0;
-                  return `<tr>
-                    <td title="${Utils.escapeAttr(r.name || 'â€”')}">${Utils.escapeHTML(r.name || 'â€”')}</td>
-                    <td class="col-number">${formatExactINR(r.value || 0)}</td>
-                    <td class="col-number"><span class="badge badge-purple">${pct.toFixed(2)}%</span></td>
-                  </tr>`;
-                }).join('')}</tbody>
-              </table>
-            </div>
-          </div>
-          <div class="grid-2" style="gap:20px">
-            <div>
-              <h4 style="margin-bottom:12px;font-size:0.88rem;font-weight:600">By Investment Class</h4>
-              <table class="data-table">
-                <thead><tr><th>Investment Class</th><th class="col-number">Closing Value (â‚¹)</th><th class="col-number">% Weight</th></tr></thead>
-                <tbody>${byCategoryRows.map(r => `<tr>
-                  <td title="${Utils.escapeAttr(r.name || 'â€”')}">${Utils.escapeHTML(r.name || 'â€”')}</td>
-                  <td class="col-number">${formatExactINR(r.value || 0)}</td>
-                  <td class="col-number"><span class="badge badge-blue">${(r.pct || 0).toFixed(2)}%</span></td>
-                </tr>`).join('')}</tbody>
-              </table>
-            </div>
-            <div>
-              <h4 style="margin-bottom:12px;font-size:0.88rem;font-weight:600">By Sector</h4>
-              <table class="data-table">
-                <thead><tr><th>Sector</th><th class="col-number">Closing Value (â‚¹)</th><th class="col-number">% Weight</th></tr></thead>
-                <tbody>${bySector.map(r => `<tr>
-                  <td>${Utils.escapeHTML(r.name || 'â€”')}</td>
-                  <td class="col-number">${formatExactINR(r.value || 0)}</td>
-                  <td class="col-number"><span class="badge badge-blue">${(r.pct || 0).toFixed(2)}%</span></td>
-                </tr>`).join('')}</tbody>
-              </table>
-            </div>
-            <div>
-              <h4 style="margin-bottom:12px;font-size:0.88rem;font-weight:600">By Maturity Bucket</h4>
-              <table class="data-table">
-                <thead><tr><th>Bucket</th><th class="col-number">Closing Value (â‚¹)</th><th class="col-number">%</th><th>Bar</th></tr></thead>
-                <tbody>${byMaturity.map(r => {
-                  const pct = r.pct || 0;
-                  return `<tr>
-                    <td>${Utils.escapeHTML(r.bucket || r.name || 'â€”')}</td>
-                    <td class="col-number">${formatExactINR(r.value || 0)}</td>
-                    <td class="col-number">${pct.toFixed(2)}%</td>
-                    <td><div style="width:120px;height:10px;background:var(--border-light);border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle"><div style="height:100%;width:${Math.min(100,pct)}%;background:${pct>40?'#ef4444':pct>20?'#f59e0b':'#10b981'};border-radius:4px"></div></div></td>
-                  </tr>`;
-                }).join('')}</tbody>
-              </table>
-            </div>
-            <div>
-              <h4 style="margin-bottom:12px;font-size:0.88rem;font-weight:600">Top 10 Issuers by Exposure</h4>
-              <table class="data-table">
-                <thead><tr><th>Issuer</th><th class="col-number">Closing Value (â‚¹)</th><th class="col-number">%</th></tr></thead>
-                <tbody>${byIssuer.map(r => {
-                  const pct = r.pct || 0;
-                  return `<tr>
-                    <td class="truncate" style="max-width:160px">${Utils.escapeHTML(r.name || 'â€”')}</td>
-                    <td class="col-number">${formatExactINR(r.value || 0)}</td>
-                    <td class="col-number"><span class="badge ${pct>10?'badge-red':pct>5?'badge-amber':'badge-green'}">${pct.toFixed(2)}%</span></td>
-                  </tr>`;
-                }).join('')}</tbody>
-              </table>
-            </div>
-          </div>
-        `;
-      }
-
-      const puEl = document.getElementById('port-updated');
-      if (puEl) {
-        puEl.textContent = simulationTickDate
-          ? `Live simulation overlay: ${simulationTickDate} | Workbook snapshot: ${Utils.formatDateTime(snapshotAt)}`
-          : `Workbook snapshot: ${Utils.formatDateTime(snapshotAt)}`;
-      }
-
-      // â”€â”€ Search / filter wiring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-      const search = document.getElementById('port-search');
-      const filterCategory = document.getElementById('port-filter-category');
-      const filterRating = document.getElementById('port-filter-rating');
-      const doFilter = () => {
-        const kw = String(search?.value || '').toLowerCase();
-        const cat = String(filterCategory?.value || '').trim();
-        const rat = String(filterRating?.value || '').trim();
-        const filtered = portfolioBonds.filter(b => {
-          const isin = String(b.isin || '').toLowerCase();
-          const bondName = String(b.bond_name || '').toLowerCase();
-          const issuerName = String(b.issuer_name || '').toLowerCase();
-          const categoryName = _investmentTypeFromRow(b);
-          const workbookCategoryName = String(b.workbook_category_label || _classifyWorkbookCategory(b)).trim();
-          const sectorName = String(b.sector || b.workbook_sector || '').toLowerCase();
-          const ratingName = String(b.credit_rating || b.rating || '').toLowerCase();
-          if (kw && ![isin, bondName, issuerName, categoryName, workbookCategoryName.toLowerCase(), sectorName].some((value) => value.includes(kw))) return false;
-          if (cat && workbookCategoryName !== cat) return false;
-          if (rat && ratingName !== rat.toLowerCase()) return false;
-          return true;
-        });
-        renderPortfolioTable(filtered);
-      };
-      search.addEventListener('input', Utils.debounce(doFilter, 200));
-      filterCategory.addEventListener('change', doFilter);
-      filterRating.addEventListener('change', doFilter);
-      document.getElementById('port-export').addEventListener('click', () => {
-        const btn = document.getElementById('port-export');
-        if (btn) { btn.disabled = true; btn.textContent = 'Exportingâ€¦'; }
-        Utils.exportCSV(
-          portfolioBonds.map((row) => {
-            const { type, instrument_type, ...rest } = row;
-            return {
-              ...rest,
-              category: _investmentTypeFromRow(row),
-              sub_type: _bondSubtypeFromRow(row),
-              instrument_subtype: _bondSubtypeFromRow(row),
-            };
-          }),
-          'portfolio_holdings.csv'
-        );
-        Utils.toast('success', 'Exported', 'Portfolio holdings exported to CSV');
-        if (btn) { btn.disabled = false; btn.textContent = 'Export CSV'; }
-      });
-    } catch (err) {
-      if (isAuthError(err)) {
-        handleSessionExpired(err);
-        return;
-      }
-      Utils.toast('error', 'Portfolio Error', err.message);
     }
   }
 

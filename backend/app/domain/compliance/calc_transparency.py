@@ -1,4 +1,4 @@
-﻿"""
+"""
 Calculation Transparency Engine
 =================================
 Provides full breakdown of every financial calculation:
@@ -20,8 +20,8 @@ import statistics
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from ..shared.logger import get_logger
-from ..shared.time_utils import utcnow_iso
+from app.shared.logger import get_logger
+from app.shared.time_utils import utcnow_iso
 
 log = get_logger("service.calc_transparency")
 

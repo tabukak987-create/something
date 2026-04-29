@@ -42,12 +42,12 @@ from ..shared.logger import get_logger
 from ..shared.auth import require_role, Roles
 from ..utils.gmail_ingest import run_gmail_ingest_cycle
 from ..domain.market_data.parsers import BrokerQuoteParser, parse_files, detect_broker
-from ..services.broker_analytics import (
+from ..domain.market_data.broker_analytics import (
     refresh_broker_profiles,
     get_all_broker_profiles,
     get_broker_comparison_for_isin,
 )
-from ..services.instrument_classification import (
+from ..domain.market_data.instrument_classification import (
     category_metadata,
     category_to_allocation_bucket,
     classify_instrument,

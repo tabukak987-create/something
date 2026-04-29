@@ -34,8 +34,8 @@ from ..shared.logger import get_logger
 from ..shared.auth import require_role, Roles
 from ..domain.market_data.im_ingestion import IMFetcher
 from ..domain.core_trust.orchestrator import DecisionOrchestrator
-from ..services.data_governance import validate_source_context
-from ..services.explainability import build_counterfactual, build_explanation
+from ..domain.core_trust.data_governance import validate_source_context
+from ..domain.core_trust.explainability import build_counterfactual, build_explanation
 
 _im_fetcher = IMFetcher()
 

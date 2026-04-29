@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from typing import List, Dict, Any
-from ..shared.database import fetch_all, fetch_one, execute_query
-from ..shared.logger import get_logger
-from ..services.instrument_classification import classify_instrument
+from app.shared.database import fetch_all, fetch_one, execute_query
+from app.shared.logger import get_logger
+from app.domain.market_data.instrument_classification import classify_instrument
 
 log = get_logger("enhanced.alerts")
 

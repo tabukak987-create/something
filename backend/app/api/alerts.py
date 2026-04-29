@@ -8,9 +8,9 @@ from typing import Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..services.alert_engine import AlertEngine
-from ..services.explainability import build_counterfactual, build_explanation
-from ..services.instrument_classification import (
+from ..domain.risk.alert_engine import AlertEngine
+from ..domain.core_trust.explainability import build_counterfactual, build_explanation
+from ..domain.market_data.instrument_classification import (
     INSTRUMENT_CATEGORY_PRIVATE,
     category_metadata,
     classify_instrument,

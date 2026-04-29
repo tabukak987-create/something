@@ -30,11 +30,11 @@ from ..shared.database import fetch_all, fetch_one, execute_query
 from ..shared.auth import require_role, Roles
 from ..shared.logger import get_logger
 from ..shared.time_utils import utcnow_iso
-from ..services.im_heuristics import IMHeuristicsEngine
-from ..services import im_fetcher_service as _fetcher
+from ..domain.risk.im_heuristics import IMHeuristicsEngine
+from ..domain.market_data import im_fetcher_service as _fetcher
 from ..domain.market_data.im_pipeline import IMPipeline
-from ..services.im_connectors import list_connectors, IM_STORAGE_DIR
-from ..services.im_institutional_engine import (
+from ..domain.portfolio.im_connectors import list_connectors, IM_STORAGE_DIR
+from ..domain.portfolio.im_institutional_engine import (
     get_institutional_analysis,
     extract_pages_from_pdf,
     detect_sections,

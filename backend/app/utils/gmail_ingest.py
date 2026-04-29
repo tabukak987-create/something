@@ -40,7 +40,7 @@ for _p in (_PROJECT, _PRIVATE3):
         sys.path.insert(0, str(_p))
 
 from ..domain.market_data.parsers import parse_files
-from ..services.broker_analytics import refresh_broker_profiles
+from ..domain.market_data.broker_analytics import refresh_broker_profiles
 from ..shared.database import execute_query, fetch_all
 from ..shared.logger import get_logger
 

@@ -6,7 +6,7 @@ import json
 from datetime import date
 from typing import Any
 
-from ..shared.database import IS_SQLITE, execute_query, fetch_all, fetch_one
+from app.shared.database import IS_SQLITE, execute_query, fetch_all, fetch_one
 
 TARGET_RANGES = {
     "GOVT": {"min": 45.0, "max": 65.0, "mid": 55.0},

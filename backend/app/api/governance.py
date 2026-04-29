@@ -25,7 +25,7 @@ from ..domain.core_trust.audit import (
     AuditService, AuditAction, AuditSeverity, EntityType,
     audit_user_role_change, audit_compliance_change,
 )
-from ..services.calc_transparency import CalcTransparencyEngine
+from ..domain.compliance.calc_transparency import CalcTransparencyEngine
 
 log = get_logger("router.governance")
 router = APIRouter(prefix="/governance", tags=["Governance & Audit"])
@@ -498,7 +498,7 @@ async def get_security_documentation(
     user: dict = Depends(require_role(Roles.AUDITOR)),
 ):
     """Full security & infrastructure documentation for audit / board review."""
-    from ..services.security_documentation import SecurityDocumentationService
+    from ..domain.core_trust.security_documentation import SecurityDocumentationService
     return SecurityDocumentationService.get_full_documentation()
 
 
@@ -511,7 +511,7 @@ async def get_sla_legal_documentation(
     user: dict = Depends(require_role(Roles.TRUSTEE)),
 ):
     """Full SLA, legal disclaimers, data ownership, and termination terms."""
-    from ..services.sla_legal import SLALegalService
+    from ..domain.compliance.sla_legal import SLALegalService
     return SLALegalService.get_full_documentation()
 
 

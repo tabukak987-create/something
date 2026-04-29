@@ -6,7 +6,7 @@ import math
 import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from .instrument_classification import (
+from app.domain.market_data.instrument_classification import (
     PORTFOLIO_CATEGORY_CENTRAL_STATE,
     PORTFOLIO_CATEGORY_EQUITY,
     PORTFOLIO_CATEGORY_PRIVATE,

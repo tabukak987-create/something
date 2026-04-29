@@ -23,12 +23,12 @@ from ..shared.database import fetch_all, fetch_one, execute_query
 from ..shared.logger import get_logger
 from ..shared.auth import require_role, Roles
 from ..shared.time_utils import utcnow_iso
-from ..services.institutional_financial_core import solve_ytm_percent
+from ..domain.portfolio.institutional_financial_core import solve_ytm_percent
 from ..domain.portfolio.dataset import PortfolioDatasetService
-from ..services.institutional_financial_core import parse_flexible_date
+from ..domain.portfolio.institutional_financial_core import parse_flexible_date
 from ..domain.core_trust.audit import AuditAction, AuditService, AuditSeverity, EntityType
-from ..services.instrument_classification import classify_instrument
-from ..services.instrument_classification import (
+from ..domain.market_data.instrument_classification import classify_instrument
+from ..domain.market_data.instrument_classification import (
     PORTFOLIO_CATEGORY_CENTRAL_STATE,
     PORTFOLIO_CATEGORY_EQUITY,
     PORTFOLIO_CATEGORY_PRIVATE,

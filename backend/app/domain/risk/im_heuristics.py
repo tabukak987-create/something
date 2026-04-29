@@ -25,7 +25,7 @@ import re
 import json
 from datetime import date, datetime
 from typing import Optional, List, Dict, Any
-from ..shared.database import fetch_all, fetch_one, execute_query
+from app.shared.database import fetch_all, fetch_one, execute_query
 
 # ── Credit Spread Matrix (bps over G-Sec) ─────────────────────────────
 CREDIT_SPREAD_MATRIX = {

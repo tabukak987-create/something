@@ -16,7 +16,7 @@ from ..shared.auth import Roles, require_role
 from ..shared.database import fetch_all, fetch_one
 from ..shared.logger import get_logger
 from ..shared.time_utils import utcnow_iso
-from ..services.alert_engine import (
+from ..domain.risk.alert_engine import (
     GOVERNMENT_SPREAD_ALERT_TYPE,
     _is_government_backed_spread,
     _is_market_date_fresh,

@@ -22,9 +22,9 @@ from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ..shared.database import execute_query, fetch_all, fetch_one
-from ..shared.logger import get_logger
-from ..shared.time_utils import utcnow_iso, utcnow
+from app.shared.database import execute_query, fetch_all, fetch_one
+from app.shared.logger import get_logger
+from app.shared.time_utils import utcnow_iso, utcnow
 
 log = get_logger("service.data_integrity")
 

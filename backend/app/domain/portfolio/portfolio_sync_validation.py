@@ -5,7 +5,7 @@ from typing import Any
 
 from app.domain.portfolio.dataset import PortfolioDatasetService
 from app.domain.portfolio.analytics import normalize_rating
-from ..shared.database import fetch_all
+from app.shared.database import fetch_all
 
 
 def _normalize_value(value: Any) -> str | None:

@@ -3,9 +3,9 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Mapping
 
-from ..shared.market_config import RATING_SPREAD_BPS, get_synthetic_yield, interpolate_gsec_yield
-from ..shared.time_utils import utcnow_iso
-from .instrument_classification import classify_instrument
+from app.shared.market_config import RATING_SPREAD_BPS, get_synthetic_yield, interpolate_gsec_yield
+from app.shared.time_utils import utcnow_iso
+from app.domain.market_data.instrument_classification import classify_instrument
 from app.domain.portfolio.analytics import RATING_SCORE, compute_bond_analytics, normalize_rating
 
 

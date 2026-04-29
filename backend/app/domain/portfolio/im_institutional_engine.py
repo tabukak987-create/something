@@ -32,7 +32,7 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from ..shared.database import execute_query, fetch_all, fetch_one
+from app.shared.database import execute_query, fetch_all, fetch_one
 
 logger = logging.getLogger("im_institutional")
 

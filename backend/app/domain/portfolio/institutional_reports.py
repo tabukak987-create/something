@@ -25,9 +25,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..shared.database import execute_query, fetch_all, fetch_one
-from ..shared.logger import get_logger
-from ..shared.time_utils import utcnow_iso
+from app.shared.database import execute_query, fetch_all, fetch_one
+from app.shared.logger import get_logger
+from app.shared.time_utils import utcnow_iso
 
 log = get_logger("service.institutional_reports")
 

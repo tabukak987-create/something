@@ -29,7 +29,7 @@ import sys
 from datetime import date, timedelta
 from typing import Optional
 
-from ..shared.time_utils import utcnow_iso
+from app.shared.time_utils import utcnow_iso
 
 # ── Formula Implementations (reference) ──────────────────────────────────────
 

@@ -30,10 +30,10 @@ from ..shared.database import execute_query, fetch_all, fetch_one
 from ..shared.logger import get_logger
 from ..shared.time_utils import utcnow_iso
 from ..domain.core_trust.audit import AuditAction, AuditService, AuditSeverity, EntityType
-from ..services.sebi_api_sync import SEBIApiSync
+from ..domain.compliance.sebi_api_sync import SEBIApiSync
 from ..domain.core_trust.approvals import FourEyesApprovalService
 from ..domain.portfolio.dataset import PortfolioDatasetService
-from ..services.data_governance import data_governance_report
+from ..domain.core_trust.data_governance import data_governance_report
 
 log = get_logger("router.datasources")
 router = APIRouter(prefix="/datasources", tags=["Data Sources"])

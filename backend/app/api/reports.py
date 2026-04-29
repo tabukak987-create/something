@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from ..shared.auth import require_role, Roles
 from ..shared.logger import get_logger
 from ..shared.time_utils import utcnow_iso
-from ..services.institutional_reports import InstitutionalReportService
+from ..domain.portfolio.institutional_reports import InstitutionalReportService
 from ..utils.pdf_signer import get_pdf_signer
 
 log = get_logger("router.reports")

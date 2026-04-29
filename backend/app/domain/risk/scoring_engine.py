@@ -11,8 +11,8 @@ Institutional Suitability Score (ISS) with 5 dimensions:
 import math
 from datetime import date
 from typing import List, Dict, Any, Optional
-from ..shared.database import fetch_all, fetch_one, execute_query
-from ..shared.logger import get_logger
+from app.shared.database import fetch_all, fetch_one, execute_query
+from app.shared.logger import get_logger
 
 log = get_logger("enhanced.scoring")
 

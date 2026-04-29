@@ -13,8 +13,8 @@ from typing import Optional
 from .database import execute_query, fetch_all, fetch_one
 from .logger import get_logger
 from .time_utils import utcnow_iso
-from ..services.instrument_classification import classify_instrument
-from ..services.data_governance import normalize_source_context, validate_source_context
+from ..domain.market_data.instrument_classification import classify_instrument
+from ..domain.core_trust.data_governance import normalize_source_context, validate_source_context
 
 log = get_logger("isin_registry")
 
