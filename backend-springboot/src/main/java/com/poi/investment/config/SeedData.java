@@ -1,0 +1,3 @@
+package com.poi.investment.config;
+import com.poi.investment.user.*; import org.springframework.beans.factory.annotation.Value; import org.springframework.boot.CommandLineRunner; import org.springframework.context.annotation.*; import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+@Configuration public class SeedData { @Bean CommandLineRunner createAdmin(UserRepository users,@Value("${app.admin-username}")String username,@Value("${app.admin-password}")String password){return args->{if(users.findByUsername(username).isEmpty())users.save(new AppUser(username,new BCryptPasswordEncoder().encode(password),"ADMIN"));};} }

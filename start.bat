@@ -1,67 +1,27 @@
 @echo off
-:: ============================================================
-:: POI_CLEAN — Self-Contained Startup Script (Windows CMD)
-:: Double-click or run from POI_CLEAN directory:  start.bat
-:: ============================================================
-
-setlocal enabledelayedexpansion
-
-set "ROOT=%~dp0"
-if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
-set PORT=9005
-set PYTHON=python
-
-echo.
-echo   ╔══════════════════════════════════════════════════╗
-echo   ║   PF Trust Investment System — POI_CLEAN         ║
-echo   ║   Unified Bond Investment Gateway v3             ║
-echo   ╚══════════════════════════════════════════════════╝
-echo.
-
-:: ── Python check ──────────────────────────────────────────
-%PYTHON% --version >nul 2>&1
+setlocal
+set ROOT=%~dp0
+set "LAN_IP="
+for /f "usebackq delims=" %%I in (`powershell -NoProfile -Command "$c=(Get-NetIPConfiguration).Where({$_.IPv4DefaultGateway -and $_.NetAdapter.Status -eq 'Up'}, 'First'); $c.IPv4Address.IPAddress"`) do set "LAN_IP=%%I"
+if not defined LAN_IP set "LAN_IP=localhost"
+where mvn >nul 2>&1 || (echo Maven 3.9+ is required.& exit /b 1)
+where npm >nul 2>&1 || (echo Node.js 20+ is required.& exit /b 1)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%setup-local-network.ps1"
+if errorlevel 1 echo WARNING: Firewall setup was not completed. Other Wi-Fi devices may be blocked.
+powershell -NoProfile -Command "$c=New-Object Net.Sockets.TcpClient; try{$c.Connect('127.0.0.1',8080); exit 0}catch{exit 1}finally{$c.Dispose()}" >nul 2>&1
 if errorlevel 1 (
-    echo   [ERROR] Python not found. Install Python 3.10+ and add to PATH.
-    pause
-    exit /b 1
+    echo Starting Spring Boot API in a new window on http://localhost:8080
+    start "POI Spring Boot API" /D "%ROOT%backend-springboot" cmd /k "call mvn spring-boot:run"
+) else (
+    echo Spring Boot API is already running on http://localhost:8080
 )
-for /f "tokens=*" %%i in ('%PYTHON% --version 2^>^&1') do echo   [OK] %%i
-
-:: ── Install / verify dependencies ─────────────────────────
-echo   [->] Checking dependencies...
-%PYTHON% -m pip install -r "%ROOT%\backend\requirements.txt" --quiet --disable-pip-version-check
-if errorlevel 1 (
-    echo   [ERROR] Dependency install failed.
-    echo          Run: pip install -r backend\requirements.txt
-    pause
-    exit /b 1
+cd /d "%ROOT%frontend-react"
+if not exist node_modules call npm install
+echo This computer: http://localhost:5173
+echo Same Wi-Fi:    http://%LAN_IP%:5173
+powershell -NoProfile -Command "$c=New-Object Net.Sockets.TcpClient; try{$c.Connect('127.0.0.1',5173); exit 0}catch{exit 1}finally{$c.Dispose()}" >nul 2>&1
+if not errorlevel 1 (
+    echo React app is already running.
+    exit /b 0
 )
-echo   [OK] Dependencies OK
-
-:: ── Set environment ────────────────────────────────────────
-set PYTHONPATH=%ROOT%;%ROOT%\backend;%ROOT%\scripts
-set PYTHONIOENCODING=utf-8
-set GATEWAY_ENV=development
-set EXPOSE_API_DOCS=true
-set ALLOW_EXTERNAL_DATA_EGRESS=false
-set REDIS_REQUIRED=false
-set RATE_LIMIT_RPM=600
-
-echo.
-echo   [->] Starting gateway on http://localhost:%PORT% ...
-echo.
-echo   ┌──────────────────────────────────────────────────┐
-echo   │  Main UI:     http://localhost:%PORT%            │
-echo   │  API Docs:    http://localhost:%PORT%/docs       │
-echo   │  Health:      http://localhost:%PORT%/api/v1/health│
-echo   │  Login:       admin / GatewayA@2026             │
-echo   └──────────────────────────────────────────────────┘
-echo.
-echo   Press Ctrl+C to stop.
-echo.
-
-:: ── Open browser after 3 seconds ──────────────────────────
-start "" /b cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:%PORT%"
-
-:: ── Launch uvicorn ─────────────────────────────────────────
-%PYTHON% -m uvicorn backend.main:app --host 127.0.0.1 --port %PORT% --reload --reload-dir "%ROOT%\backend" --reload-dir "%ROOT%\scripts"
+call npm run dev

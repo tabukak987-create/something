@@ -1,0 +1,4 @@
+isin,issuer,couponRate,marketPrice,rating,quantity,faceValue
+IN0000000001,Fictional Infrastructure Ltd,7.85,101.25,AA+,1000,1000
+IN0000000002,Fictional Finance Ltd,8.40,98.75,A,750,1000
+IN0000000003,Fictional Renewable Energy Ltd,9.10,96.50,BBB,500,1000

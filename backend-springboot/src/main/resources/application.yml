@@ -1,0 +1,24 @@
+server:
+  address: ${SERVER_ADDRESS:0.0.0.0}
+  port: ${PORT:8080}
+spring:
+  application:
+    name: poi-investment-api
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/poi_investment?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:Harsh@1234}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 60MB
+app:
+  cors-origin: ${CORS_ORIGIN:http://localhost:5173}
+  jwt-secret: ${JWT_SECRET:development-only-secret-change-me-at-least-thirty-two-bytes}
+  jwt-minutes: ${JWT_EXPIRATION_MINUTES:60}
+  admin-username: ${APP_ADMIN_USERNAME:admin}
+  admin-password: ${APP_ADMIN_PASSWORD:ChangeMe123!}
